@@ -1,0 +1,23 @@
+{
+  "name": "alvaraes-conecta-comunidade",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm --workspace frontend run dev",
+    "dev:backend": "npm --workspace backend run dev",
+    "build:frontend": "npm --workspace frontend run build",
+    "build:backend": "npm --workspace backend run build",
+    "lint:frontend": "npm --workspace frontend run lint",
+    "db:up": "docker-compose -f backend/docker-compose.yml up -d",
+    "db:down": "docker-compose -f backend/docker-compose.yml down",
+    "db:logs": "docker-compose -f backend/docker-compose.yml logs -f mysql",
+    "db:init": "docker-compose -f backend/docker-compose.yml exec -T mysql mysql -uroot -proot123456 -e \"CREATE DATABASE IF NOT EXISTS alvaraes_moderna_shadow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL PRIVILEGES ON alvaraes_moderna.* TO 'alvaraes'@'%'; FLUSH PRIVILEGES;\"",
+    "prisma:generate": "npm --workspace backend run prisma:generate",
+    "prisma:migrate": "npm --workspace backend run prisma:migrate",
+    "prisma:seed": "npm --workspace backend run prisma:seed"
+  }
+}

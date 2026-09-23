@@ -1,0 +1,333 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum StatusPublicacao {
+  RASCUNHO
+  PUBLICADO
+  ARQUIVADO
+}
+
+enum TipoConteudoNoticia {
+  NOTICIA
+  OPINIAO
+  PATROCINADO
+}
+
+enum TipoCategoria {
+  NOTICIA
+  COMERCIO
+  EVENTO
+  OPORTUNIDADE
+}
+
+enum ModalidadeOportunidade {
+  PRESENCIAL
+  ONLINE
+  HIBRIDO
+}
+
+enum TipoContato {
+  SUGESTAO_PAUTA
+  CORRECAO
+  MENSAGEM_GERAL
+}
+
+enum StatusContato {
+  NOVO
+  EM_ANALISE
+  RESPONDIDO
+  ARQUIVADO
+}
+
+enum TipoPedidoAnuncio {
+  CADASTRO_BASICO
+  PAGINA_COMPLETA
+  DESTAQUE_PATROCINADO
+}
+
+enum StatusPedidoAnuncio {
+  NOVO
+  EM_CONTATO
+  CONVERTIDO
+  ARQUIVADO
+}
+
+enum TipoVinculoMidia {
+  NOTICIA
+  COMERCIO
+  EVENTO
+  OPORTUNIDADE
+  SITE
+}
+
+enum TipoMidia {
+  IMAGEM
+  VIDEO
+}
+
+model Usuario {
+  id         String   @id @default(cuid())
+  nome       String   @db.VarChar(120)
+  email      String   @unique @db.VarChar(180)
+  senhaHash  String   @map("senha_hash") @db.VarChar(255)
+  ativo      Boolean  @default(true)
+  criadoEm   DateTime @default(now()) @map("criado_em")
+  alteradoEm DateTime @updatedAt @map("alterado_em")
+
+  noticiasCriadas Noticia[] @relation("NoticiasCriadas")
+
+  @@map("usuarios")
+}
+
+model Categoria {
+  id         String        @id @default(cuid())
+  nome       String        @db.VarChar(120)
+  slug       String        @db.VarChar(140)
+  tipo       TipoCategoria
+  ordem      Int           @default(0)
+  ativa      Boolean       @default(true)
+  criadoEm   DateTime      @default(now()) @map("criado_em")
+  alteradoEm DateTime      @updatedAt @map("alterado_em")
+
+  noticias      Noticia[]      @relation("NoticiasCategoria")
+  comercios     Comercio[]     @relation("ComerciosCategoria")
+  eventos       Evento[]       @relation("EventosCategoria")
+  oportunidades Oportunidade[] @relation("OportunidadesCategoria")
+
+  @@unique([slug, tipo])
+  @@map("categorias")
+}
+
+model Noticia {
+  id            String              @id @default(cuid())
+  slug          String              @unique @db.VarChar(180)
+  titulo        String              @db.VarChar(180)
+  resumo        String              @db.VarChar(300)
+  corpo         Json
+  fontes        Json?
+  autorNome     String              @map("autor_nome") @db.VarChar(120)
+  categoriaId   String              @map("categoria_id")
+  tipoConteudo  TipoConteudoNoticia @default(NOTICIA) @map("tipo_conteudo")
+  status        StatusPublicacao    @default(RASCUNHO)
+  destaque      Boolean             @default(false)
+  demonstracao  Boolean             @default(false)
+  imagemUrl     String?             @map("imagem_url") @db.VarChar(500)
+  imagemAlt     String?             @map("imagem_alt") @db.VarChar(250)
+  imagemCredito String?             @map("imagem_credito") @db.VarChar(250)
+  publicadoEm   DateTime?           @map("publicado_em")
+  criadoEm      DateTime            @default(now()) @map("criado_em")
+  alteradoEm    DateTime            @updatedAt @map("alterado_em")
+  autorId       String?             @map("autor_id")
+
+  categoria Categoria @relation("NoticiasCategoria", fields: [categoriaId], references: [id])
+  autor     Usuario?  @relation("NoticiasCriadas", fields: [autorId], references: [id])
+
+  @@index([status, publicadoEm])
+  @@index([categoriaId])
+  @@map("noticias")
+}
+
+model Comercio {
+  id           String           @id @default(cuid())
+  slug         String           @unique @db.VarChar(180)
+  nome         String           @db.VarChar(160)
+  categoriaId  String           @map("categoria_id")
+  area         String           @db.VarChar(120)
+  descricao    String?          @db.Text
+  servicos     Json?
+  horarios     Json?
+  endereco     String?          @db.VarChar(250)
+  telefone     String?          @db.VarChar(40)
+  whatsapp     String?          @db.VarChar(40)
+  redesSociais Json?            @map("redes_sociais")
+  siteExterno  String?          @map("site_externo") @db.VarChar(500)
+  possuiPagina Boolean          @default(false) @map("possui_pagina")
+  patrocinado  Boolean          @default(false)
+  demonstracao Boolean          @default(false)
+  status       StatusPublicacao @default(RASCUNHO)
+  criadoEm     DateTime         @default(now()) @map("criado_em")
+  alteradoEm   DateTime         @updatedAt @map("alterado_em")
+
+  categoria Categoria @relation("ComerciosCategoria", fields: [categoriaId], references: [id])
+
+  @@index([status])
+  @@index([categoriaId])
+  @@map("comercios")
+}
+
+model Evento {
+  id           String           @id @default(cuid())
+  titulo       String           @db.VarChar(180)
+  categoriaId  String           @map("categoria_id")
+  data         DateTime
+  horario      String?          @db.VarChar(80)
+  local        String           @db.VarChar(180)
+  organizador  String           @db.VarChar(180)
+  descricao    String           @db.Text
+  entrada      String           @db.VarChar(180)
+  contato      String?          @db.VarChar(180)
+  fonte        String?          @db.VarChar(250)
+  demonstracao Boolean          @default(false)
+  status       StatusPublicacao @default(RASCUNHO)
+  criadoEm     DateTime         @default(now()) @map("criado_em")
+  alteradoEm   DateTime         @updatedAt @map("alterado_em")
+
+  categoria Categoria @relation("EventosCategoria", fields: [categoriaId], references: [id])
+
+  @@index([status, data])
+  @@index([categoriaId])
+  @@map("eventos")
+}
+
+model Oportunidade {
+  id            String                 @id @default(cuid())
+  titulo        String                 @db.VarChar(180)
+  organizador   String                 @db.VarChar(180)
+  modalidade    ModalidadeOportunidade
+  local         String?                @db.VarChar(180)
+  prazo         DateTime
+  requisitos    String?                @db.Text
+  custo         String?                @db.VarChar(120)
+  linkInscricao String?                @map("link_inscricao") @db.VarChar(500)
+  categoriaId   String?                @map("categoria_id")
+  demonstracao  Boolean                @default(false)
+  status        StatusPublicacao       @default(RASCUNHO)
+  criadoEm      DateTime               @default(now()) @map("criado_em")
+  alteradoEm    DateTime               @updatedAt @map("alterado_em")
+
+  categoria Categoria? @relation("OportunidadesCategoria", fields: [categoriaId], references: [id])
+
+  @@index([status, prazo])
+  @@index([categoriaId])
+  @@map("oportunidades")
+}
+
+model Midia {
+  id               String           @id @default(cuid())
+  url              String           @db.VarChar(500)
+  tipoMidia        TipoMidia        @default(IMAGEM) @map("tipo_midia")
+  titulo           String?          @db.VarChar(180)
+  textoAlternativo String?          @map("texto_alternativo") @db.VarChar(250)
+  credito          String?          @db.VarChar(250)
+  origem           String?          @db.VarChar(250)
+  tamanhoBytes     Int?             @map("tamanho_bytes")
+  duracaoSegundos  Int?             @map("duracao_segundos")
+  tipoVinculo      TipoVinculoMidia @map("tipo_vinculo")
+  registroId       String?          @map("registro_id")
+  ativa            Boolean          @default(true)
+  ordem            Int              @default(0)
+  criadoEm         DateTime         @default(now()) @map("criado_em")
+  alteradoEm       DateTime         @updatedAt @map("alterado_em")
+
+  @@index([tipoVinculo, registroId])
+  @@map("midias")
+}
+
+model Contato {
+  id              String        @id @default(cuid())
+  tipo            TipoContato
+  nome            String        @db.VarChar(120)
+  contatoResposta String        @map("contato_resposta") @db.VarChar(180)
+  assunto         String?       @db.VarChar(160)
+  mensagem        String        @db.Text
+  status          StatusContato @default(NOVO)
+  criadoEm        DateTime      @default(now()) @map("criado_em")
+  alteradoEm      DateTime      @updatedAt @map("alterado_em")
+
+  @@index([status, criadoEm])
+  @@map("contatos")
+}
+
+model InscritoBoletim {
+  id         String   @id @default(cuid())
+  nome       String   @db.VarChar(120)
+  email      String   @unique @db.VarChar(180)
+  origem     String   @default("site") @db.VarChar(80)
+  ativo      Boolean  @default(true)
+  criadoEm   DateTime @default(now()) @map("criado_em")
+  alteradoEm DateTime @updatedAt @map("alterado_em")
+
+  @@index([ativo, criadoEm])
+  @@map("inscritos_boletim")
+}
+
+model PedidoAnuncio {
+  id                  String              @id @default(cuid())
+  tipo                TipoPedidoAnuncio
+  nomeResponsavel     String              @map("nome_responsavel") @db.VarChar(120)
+  contatoResponsavel  String              @map("contato_responsavel") @db.VarChar(180)
+  nomeComercio        String              @map("nome_comercio") @db.VarChar(160)
+  categoriaPretendida String?             @map("categoria_pretendida") @db.VarChar(120)
+  localizacaoResumida String?             @map("localizacao_resumida") @db.VarChar(160)
+  mensagem            String?             @db.Text
+  status              StatusPedidoAnuncio @default(NOVO)
+  criadoEm            DateTime            @default(now()) @map("criado_em")
+  alteradoEm          DateTime            @updatedAt @map("alterado_em")
+
+  @@index([status, criadoEm])
+  @@map("pedidos_anuncio")
+}
+
+model ConfiguracaoSite {
+  id                           String   @id @default(cuid())
+  nomePortal                   String   @default("Alvaraes Moderna") @map("nome_portal") @db.VarChar(120)
+  dominio                      String   @default("alvaraesmoderna.com.br") @db.VarChar(180)
+  slogan                       String   @default("Alvaraes perto de voce.") @db.VarChar(180)
+  textoIndependenciaEditorial  String   @map("texto_independencia_editorial") @db.Text
+  emailOficial                 String?  @map("email_oficial") @db.VarChar(180)
+  whatsappOficial              String?  @map("whatsapp_oficial") @db.VarChar(40)
+  redesSociais                 Json?    @map("redes_sociais")
+  formularioContatoAtivo       Boolean  @default(false) @map("formulario_contato_ativo")
+  exibirDemonstracaoEmProducao Boolean  @default(false) @map("exibir_demonstracao_em_producao")
+  criadoEm                     DateTime @default(now()) @map("criado_em")
+  alteradoEm                   DateTime @updatedAt @map("alterado_em")
+
+  @@map("configuracoes_site")
+}
+
+enum TipoEntidade {
+  NOTICIA
+  COMERCIO
+  EVENTO
+  CURSO
+}
+
+enum StatusComentario {
+  PENDENTE
+  APROVADO
+  REJEITADO
+}
+
+model Curtida {
+  id           String       @id @default(cuid())
+  entidadeTipo TipoEntidade @map("entidade_tipo")
+  entidadeId   String       @map("entidade_id")
+  clienteId    String       @map("cliente_id")
+  criadoEm     DateTime     @default(now()) @map("criado_em")
+
+  @@unique([entidadeTipo, entidadeId, clienteId])
+  @@index([entidadeTipo, entidadeId])
+  @@map("curtidas")
+}
+
+model Comentario {
+  id           String           @id @default(cuid())
+  entidadeTipo TipoEntidade     @map("entidade_tipo")
+  entidadeId   String           @map("entidade_id")
+  autorNome    String           @map("autor_nome") @db.VarChar(120)
+  autorEmail   String?          @map("autor_email") @db.VarChar(180)
+  conteudo     String           @db.Text
+  status       StatusComentario @default(PENDENTE)
+  criadoEm     DateTime         @default(now()) @map("criado_em")
+  alteradoEm   DateTime         @updatedAt @map("alterado_em")
+
+  @@index([entidadeTipo, entidadeId, status])
+  @@map("comentarios")
+}
