@@ -45,16 +45,7 @@ export function NoticiasListaView({
     setPagina(1);
   }, [categoriaBusca]);
 
-  useEffect(() => {
-    if (!categoriaBusca || carregando) return;
 
-    window.requestAnimationFrame(() => {
-      document.getElementById("lista-noticias")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
-  }, [categoriaBusca, carregando]);
 
   
 
@@ -96,7 +87,7 @@ export function NoticiasListaView({
 
       {erro && <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
-      {!carregando && destaques.length > 0 && (
+      {destaques.length > 0 && (
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-2xl text-primary">Destaques</h2>
@@ -312,3 +303,5 @@ export function NoticiasListaView({
     </div>
   );
 }
+
+

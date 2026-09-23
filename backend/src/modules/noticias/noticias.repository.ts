@@ -224,8 +224,8 @@ export class NoticiasRepository {
       ...(filtros.busca
         ? {
             OR: [
-              { titulo: { contains: filtros.busca } },
-              { resumo: { contains: filtros.busca } },
+              { titulo: { contains: filtros.busca, mode: "insensitive" } },
+              { resumo: { contains: filtros.busca, mode: "insensitive" } },
             ],
           }
         : {}),
@@ -259,3 +259,4 @@ export class NoticiasRepository {
     }));
   }
 }
+
