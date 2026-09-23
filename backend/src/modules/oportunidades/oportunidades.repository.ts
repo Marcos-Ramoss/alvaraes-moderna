@@ -202,9 +202,9 @@ export class OportunidadesRepository {
       ...(filtros.busca
         ? {
             OR: [
-              { titulo: { contains: filtros.busca } },
-              { organizador: { contains: filtros.busca } },
-              { local: { contains: filtros.busca } },
+              { titulo: { contains: filtros.busca, mode: "insensitive" } },
+              { organizador: { contains: filtros.busca, mode: "insensitive" } },
+              { local: { contains: filtros.busca, mode: "insensitive" } },
             ],
           }
         : {}),

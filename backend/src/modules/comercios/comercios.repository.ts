@@ -189,8 +189,8 @@ export class ComerciosRepository {
       ...(filtros.busca
         ? {
             OR: [
-              { nome: { contains: filtros.busca } },
-              { area: { contains: filtros.busca } },
+              { nome: { contains: filtros.busca, mode: "insensitive" } },
+              { area: { contains: filtros.busca, mode: "insensitive" } },
             ],
           }
         : {}),
