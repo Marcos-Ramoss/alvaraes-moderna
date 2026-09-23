@@ -65,21 +65,31 @@ export function ComerciosListaView() {
       </section>
 
       <section className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 shadow-sm lg:flex-row lg:items-center">
-        <form onSubmit={(e) => { e.preventDefault(); setBuscaSubmetida(query); setPagina(1); }} className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-input bg-background px-3 py-2 focus-within:ring-1 focus-within:ring-primary">
-          <Search className="h-4 w-4 text-primary" />
-          <span className="sr-only">Buscar por palavra-chave</span>
-          <input
-            type="search"
-            id="busca-comercios"
-            name="busca-comercios"
-            autoComplete="off"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por nome, categoria ou bairro..."
-            className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-          />
+        <form onSubmit={(e) => { e.preventDefault(); setBuscaSubmetida(query); setPagina(1); }} className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center w-full">
+          <div className="flex flex-1 items-center gap-2 rounded-full border border-input bg-background px-3 py-2 focus-within:ring-1 focus-within:ring-primary">
+            <Search className="h-4 w-4 text-primary shrink-0" />
+            <span className="sr-only">Buscar por palavra-chave</span>
+            <input type="search" id="busca" name="busca" autoComplete="off"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar comércios, produtos ou serviços..."
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => { setQuery(''); setBuscaSubmetida(''); setPagina(1); }}
+                className="text-xs font-medium text-muted-foreground hover:text-foreground p-1"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+          <button type="submit" className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground w-full sm:w-auto transition-opacity hover:opacity-90 active:opacity-80">
+            Pesquisar
+          </button>
         </form>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {[{ slug: "Todas", nome: "Todas" }, ...categorias].map((cat) => (
             <button
               key={cat.slug}
@@ -201,3 +211,4 @@ export function ComerciosListaView() {
     </div>
   );
 }
+

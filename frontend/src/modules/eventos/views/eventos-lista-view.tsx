@@ -138,7 +138,7 @@ export function EventosListaView() {
             className="min-w-0 flex-1 bg-transparent text-sm outline-none"
           />
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {[{ slug: "Todas", nome: "Todos" }, ...categorias.map(([slug, nome]) => ({ slug, nome }))]
             .slice(0, 6)
             .map((cat) => (
@@ -287,3 +287,4 @@ function ListaSkeleton() {
     </div>
   );
 }
+
