@@ -19,5 +19,9 @@
     "prisma:generate": "npm --workspace backend run prisma:generate",
     "prisma:migrate": "npm --workspace backend run prisma:migrate",
     "prisma:seed": "npm --workspace backend run prisma:seed"
+  },
+  "overrides": {
+    "rolldown": "1.2.1",
+    "h3-v2": "npm:h3@latest"
   }
 }
