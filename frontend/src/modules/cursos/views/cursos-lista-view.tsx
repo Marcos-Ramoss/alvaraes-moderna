@@ -79,7 +79,7 @@ export function CursosListaView() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar por título ou tipo de vaga..."
+              placeholder="Buscar por tÃ­tulo ou tipo de vaga..."
               className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
             {query && (
@@ -170,4 +170,3 @@ function ListaSkeleton() {
     </div>
   );
 }
-

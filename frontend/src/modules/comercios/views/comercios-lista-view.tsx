@@ -69,10 +69,14 @@ export function ComerciosListaView() {
           <div className="flex flex-1 items-center gap-2 rounded-full border border-input bg-background px-3 py-2 focus-within:ring-1 focus-within:ring-primary">
             <Search className="h-4 w-4 text-primary shrink-0" />
             <span className="sr-only">Buscar por palavra-chave</span>
-            <input type="search" id="busca" name="busca" autoComplete="off"
+            <input
+              type="search"
+              id="busca-comercios"
+              name="busca-comercios"
+              autoComplete="off"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar comércios, produtos ou serviços..."
+              placeholder="Buscar por nome, categoria ou bairro..."
               className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
             {query && (
@@ -211,4 +215,3 @@ export function ComerciosListaView() {
     </div>
   );
 }
-
