@@ -13,6 +13,10 @@ const envSchema = z
       .default("mysql://alvaraes:alvaraes123456@localhost:3306/alvaraes_moderna"),
     FRONTEND_URL: z.string().url().default("http://localhost:5173"),
     JWT_SECRET: z.string().min(32).default("troque-este-segredo-em-producao-local"),
+    SUPABASE_URL: z.string().url().default("https://bopoobfyqdinszvddlno.supabase.co"),
+    SUPABASE_ANON_KEY: z.string().optional(),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).default(""),
+    SUPABASE_STORAGE_BUCKET: z.string().min(1).default("imagens"),
   })
   .superRefine((env, ctx) => {
     if (

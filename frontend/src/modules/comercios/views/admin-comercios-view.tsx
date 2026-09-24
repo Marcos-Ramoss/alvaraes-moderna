@@ -16,6 +16,7 @@ import { FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminPaginacao } from "@/components/admin/admin-list-controls";
 import { AdminMassActions } from "@/components/admin/admin-mass-actions";
+import { ImageUploader } from "@/components/admin/image-uploader";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -691,20 +692,13 @@ export function AdminComerciosView() {
                             </div>
                             <div className="grid gap-4 md:grid-cols-[1fr_160px]">
                               <div className="grid gap-4">
-                                <Campo label="URL da imagem">
-                                  {/* TODO: substituir este campo por upload real com conversao para WebP e geracao de versoes 900x900/1600x900. */}
-                                  <input
-                                    type="url"
-                                    inputMode="url"
-                                    value={imagem.url}
-                                    onChange={(event) =>
-                                      atualizarImagem(index, "url", event.target.value)
-                                    }
-                                    className="admin-input"
-                                    placeholder="https://..."
-                                    pattern="https?://.*"
-                                  />
-                                </Campo>
+                                <ImageUploader
+                                  url={imagem.url}
+                                  onChange={(novaUrl) => atualizarImagem(index, "url", novaUrl)}
+                                  pasta="comercios"
+                                  label="Foto do comércio"
+                                  ajuda="Selecione a foto ou logo do comércio para o Supabase (até 5 MB)"
+                                />
                                 <Campo label="Texto alternativo">
                                   <input
                                     value={imagem.textoAlternativo}

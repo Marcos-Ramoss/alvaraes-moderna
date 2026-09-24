@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { AdminShell } from "./admin-shell";
 import { AdminPaginacao } from "./admin-list-controls";
 import { AdminMassActions } from "./admin-mass-actions";
+import { ImageUploader } from "./image-uploader";
 import { useAdminAuth } from "./use-admin-auth";
 import { Checkbox } from "../ui/checkbox";
 import { CheckCircle, FileEdit, Archive } from "lucide-react";
@@ -790,18 +791,13 @@ function renderCampo(
 
                 <div className="grid gap-4 md:grid-cols-[1fr_160px]">
                   <div className="grid gap-4">
-                    <Campo label="URL da imagem">
-                      {/* TODO: substituir este campo por upload real com conversao para WebP e geracao de versoes 900x900/1600x900. */}
-                      <input
-                        type="url"
-                        inputMode="url"
-                        value={imagem.url}
-                        onChange={(event) => atualizarImagem(index, "url", event.target.value)}
-                        className="admin-input"
-                        placeholder="https://..."
-                        pattern="https?://.*"
-                      />
-                    </Campo>
+                    <ImageUploader
+                      url={imagem.url}
+                      onChange={(novaUrl) => atualizarImagem(index, "url", novaUrl)}
+                      pasta="geral"
+                      label="Upload da imagem"
+                      ajuda="Selecione uma imagem para salvar no Supabase (até 5 MB)"
+                    />
                     <Campo label="Texto alternativo">
                       <input
                         value={imagem.textoAlternativo}

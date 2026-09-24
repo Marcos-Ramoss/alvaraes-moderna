@@ -361,6 +361,33 @@ export const adminApi = {
       body: { status },
     });
   },
+
+  async uploadImagem(arquivo: File, pasta = "geral"): Promise<{
+    url: string;
+    caminho: string;
+    nomeOriginal: string;
+    tamanhoBytes: number;
+    tipoMime: string;
+  }> {
+    const token = obterTokenAdmin();
+    const formData = new FormData();
+    formData.append("arquivo", arquivo);
+    formData.append("pasta", pasta);
+
+    const response = await fetch(`${API_URL}/admin/upload`, {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.erro ?? data?.message ?? "Falha ao enviar imagem.");
+    }
+    return data.dados;
+  },
 };
 
 export function formatarDataPtBr(dataIso?: string) {
