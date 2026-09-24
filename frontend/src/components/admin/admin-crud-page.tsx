@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { AdminShell } from "./admin-shell";
 import { AdminPaginacao } from "./admin-list-controls";
 import { AdminMassActions } from "./admin-mass-actions";
+import { ImageUploader } from "./image-uploader";
 import { useAdminAuth } from "./use-admin-auth";
 import { Checkbox } from "../ui/checkbox";
 import { CheckCircle, FileEdit, Archive } from "lucide-react";
@@ -125,14 +126,6 @@ export function AdminCrudPage<T extends { id: string }, P>({
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
 
-  function handleSelecionarTodos(checked: boolean) {
-    if (checked) {
-      setSelecionados(new Set(items.map((item) => obterId(item))));
-    } else {
-      setSelecionados(new Set());
-    }
-  }
-
   function handleSelecionarUm(id: string, checked: boolean) {
     const next = new Set(selecionados);
     if (checked) next.add(id);
@@ -177,6 +170,22 @@ export function AdminCrudPage<T extends { id: string }, P>({
 
   const paginaAtual = Math.min(pagina, Math.max(1, Math.ceil(filtrados.length / porPagina)));
   const paginados = filtrados.slice((paginaAtual - 1) * porPagina, paginaAtual * porPagina);
+
+  useEffect(() => {
+    setSelecionados(new Set());
+  }, [pagina, porPagina, busca]);
+
+  const todosDaPaginaSelecionados =
+    paginados.length > 0 &&
+    paginados.every((item) => selecionados.has(obterId(item)));
+
+  function handleSelecionarTodos(checked: boolean) {
+    if (checked) {
+      setSelecionados(new Set(paginados.map((item) => obterId(item))));
+    } else {
+      setSelecionados(new Set());
+    }
+  }
 
   const indiceEtapaAtual = Math.max(
     etapas.findIndex((etapa) => etapa === (etapaAtual || etapas[0])),
@@ -468,7 +477,7 @@ export function AdminCrudPage<T extends { id: string }, P>({
                   {entidadeParaMassa && (
                     <th className="px-4 py-3 w-[40px]">
                       <Checkbox
-                        checked={items.length > 0 && selecionados.size === items.length}
+                        checked={todosDaPaginaSelecionados}
                         onCheckedChange={(c) => handleSelecionarTodos(c as boolean)}
                         aria-label="Selecionar tudo"
                       />
@@ -788,43 +797,23 @@ function renderCampo(
                   </Button>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-[1fr_160px]">
-                  <div className="grid gap-4">
-                    <Campo label="URL da imagem">
-                      {/* TODO: substituir este campo por upload real com conversao para WebP e geracao de versoes 900x900/1600x900. */}
-                      <input
-                        type="url"
-                        inputMode="url"
-                        value={imagem.url}
-                        onChange={(event) => atualizarImagem(index, "url", event.target.value)}
-                        className="admin-input"
-                        placeholder="https://..."
-                        pattern="https?://.*"
-                      />
-                    </Campo>
-                    <Campo label="Texto alternativo">
-                      <input
-                        value={imagem.textoAlternativo}
-                        onChange={(event) =>
-                          atualizarImagem(index, "textoAlternativo", event.target.value)
-                        }
-                        className="admin-input"
-                      />
-                    </Campo>
-                  </div>
-                  <div className="aspect-square overflow-hidden rounded-md border border-admin-border bg-white">
-                    {imagem.url.trim() ? (
-                      <img
-                        src={imagem.url}
-                        alt={imagem.textoAlternativo || "Previa da imagem"}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-admin-muted">
-                        <ImageIcon className="h-8 w-8" />
-                      </div>
-                    )}
-                  </div>
+                <div className="grid gap-4">
+                  <ImageUploader
+                    url={imagem.url}
+                    onChange={(novaUrl) => atualizarImagem(index, "url", novaUrl)}
+                    pasta="geral"
+                    label="Upload da imagem"
+                    ajuda="Selecione uma imagem para salvar no Supabase (até 5 MB)"
+                  />
+                  <Campo label="Texto alternativo">
+                    <input
+                      value={imagem.textoAlternativo}
+                      onChange={(event) =>
+                        atualizarImagem(index, "textoAlternativo", event.target.value)
+                      }
+                      className="admin-input"
+                    />
+                  </Campo>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
