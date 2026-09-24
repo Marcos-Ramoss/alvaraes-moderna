@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, Search, X } from "lucide-react";
+import { Menu, Search, X, Download } from "lucide-react";
 import { useState } from "react";
+import { usePwaInstall } from "@/hooks/use-pwa-install";
+import { toast } from "sonner";
 
 const nav = [
   { to: "/", label: "Início" },
@@ -16,6 +18,18 @@ import { GlobalSearch } from "./global-search";
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { canInstall, promptInstall } = usePwaInstall();
+
+  const handleInstallClick = () => {
+    if (canInstall) {
+      promptInstall();
+    } else {
+      toast.info("Já instalado", {
+        description: "Procure nos seus apps ou na tela inicial.",
+        position: "top-center",
+      });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur-md">
@@ -121,6 +135,28 @@ export function SiteHeader() {
             "
           >
             <Search className="size-4" />
+          </button>
+
+          {/* INSTALAR APP */}
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            className="
+              flex items-center gap-2
+              rounded-full
+              border border-primary/30
+              bg-primary/5
+              px-4 py-2.5
+              text-xs font-semibold
+              text-primary
+              transition-all duration-300
+              hover:-translate-y-0.5
+              hover:bg-primary/10
+              hover:border-primary/50
+            "
+          >
+            <Download className="size-4" />
+            Instalar App
           </button>
 
           {/* ANUNCIE */}
@@ -279,7 +315,27 @@ export function SiteHeader() {
             </li>
 
             {/* ANUNCIE MOBILE */}
-            <li className="py-4">
+            <li className="py-4 flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  handleInstallClick();
+                }}
+                className="
+                  flex items-center justify-center gap-2
+                  rounded-full
+                  border-2 border-primary
+                  bg-transparent
+                  px-4 py-3
+                  text-base font-semibold
+                  text-primary
+                  transition-colors
+                  hover:bg-primary/10
+                "
+              >
+                <Download className="size-5" />
+                Instalar App
+              </button>
               <Link
                 to="/anuncie"
                 onClick={() => setOpen(false)}
