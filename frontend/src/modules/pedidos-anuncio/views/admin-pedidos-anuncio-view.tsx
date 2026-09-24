@@ -59,14 +59,6 @@ export function AdminPedidosAnuncioView() {
   const [porPagina, setPorPagina] = useState(10);
   const [pedidoSelecionado, setPedidoSelecionado] = useState<PedidoAnuncioAdmin | null>(null);
 
-  function handleSelecionarTodos(checked: boolean) {
-    if (checked) {
-      setSelecionados(new Set(pedidos.map((p) => p.id)));
-    } else {
-      setSelecionados(new Set());
-    }
-  }
-
   function handleSelecionarUm(id: string, checked: boolean) {
     const next = new Set(selecionados);
     if (checked) next.add(id);
@@ -129,6 +121,22 @@ export function AdminPedidosAnuncioView() {
   const paginaAtual = Math.min(pagina, totalPaginas);
   const inicioPagina = (paginaAtual - 1) * porPagina;
   const pedidosPaginados = pedidosFiltrados.slice(inicioPagina, inicioPagina + porPagina);
+
+  useEffect(() => {
+    setSelecionados(new Set());
+  }, [pagina, porPagina, busca, statusFiltro]);
+
+  const todosDaPaginaSelecionados =
+    pedidosPaginados.length > 0 &&
+    pedidosPaginados.every((p) => selecionados.has(p.id));
+
+  function handleSelecionarTodos(checked: boolean) {
+    if (checked) {
+      setSelecionados(new Set(pedidosPaginados.map((p) => p.id)));
+    } else {
+      setSelecionados(new Set());
+    }
+  }
 
   async function alterarStatus(id: string, status: StatusPedidoAnuncioAdmin) {
     setAlterandoId(id);
@@ -354,7 +362,7 @@ export function AdminPedidosAnuncioView() {
                     <tr>
                       <th className="px-4 py-3 w-[40px]">
                         <Checkbox
-                          checked={pedidos.length > 0 && selecionados.size === pedidos.length}
+                          checked={todosDaPaginaSelecionados}
                           onCheckedChange={(c) => handleSelecionarTodos(c as boolean)}
                           aria-label="Selecionar tudo"
                         />

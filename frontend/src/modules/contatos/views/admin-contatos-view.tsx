@@ -60,14 +60,6 @@ export function AdminContatosView() {
   const [porPagina, setPorPagina] = useState(10);
   const [contatoSelecionado, setContatoSelecionado] = useState<ContatoAdmin | null>(null);
 
-  function handleSelecionarTodos(checked: boolean) {
-    if (checked) {
-      setSelecionados(new Set(contatos.map((c) => c.id)));
-    } else {
-      setSelecionados(new Set());
-    }
-  }
-
   function handleSelecionarUm(id: string, checked: boolean) {
     const next = new Set(selecionados);
     if (checked) next.add(id);
@@ -120,6 +112,22 @@ export function AdminContatosView() {
   const paginaAtual = Math.min(pagina, totalPaginas);
   const inicio = (paginaAtual - 1) * porPagina;
   const contatosPaginados = contatosFiltrados.slice(inicio, inicio + porPagina);
+
+  useEffect(() => {
+    setSelecionados(new Set());
+  }, [pagina, porPagina, busca, statusFiltro]);
+
+  const todosDaPaginaSelecionados =
+    contatosPaginados.length > 0 &&
+    contatosPaginados.every((c) => selecionados.has(c.id));
+
+  function handleSelecionarTodos(checked: boolean) {
+    if (checked) {
+      setSelecionados(new Set(contatosPaginados.map((c) => c.id)));
+    } else {
+      setSelecionados(new Set());
+    }
+  }
 
   async function alterarStatus(id: string, novoStatus: string) {
     setAlterandoId(id);
@@ -328,7 +336,7 @@ export function AdminContatosView() {
                     <tr>
                       <th className="px-4 py-3 w-[40px]">
                         <Checkbox
-                          checked={contatos.length > 0 && selecionados.size === contatos.length}
+                          checked={todosDaPaginaSelecionados}
                           onCheckedChange={(c) => handleSelecionarTodos(c as boolean)}
                           aria-label="Selecionar tudo"
                         />

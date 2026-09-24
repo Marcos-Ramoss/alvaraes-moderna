@@ -75,14 +75,6 @@ export function AdminNoticiasView() {
   const [porPagina, setPorPagina] = useState(10);
   const etapas = ["Conteúdo", "Classificacao", "Midias", "Pré-visualização", "Publicação"];
 
-  const handleSelecionarTodos = (checked: boolean) => {
-    if (checked) {
-      setSelecionados(new Set(noticiasFiltradas.map((n) => n.id)));
-    } else {
-      setSelecionados(new Set());
-    }
-  };
-
   const handleSelecionarUm = (id: string, checked: boolean) => {
     const novoSet = new Set(selecionados);
     if (checked) novoSet.add(id);
@@ -130,6 +122,22 @@ export function AdminNoticiasView() {
     (paginaAtual - 1) * porPagina,
     paginaAtual * porPagina,
   );
+
+  useEffect(() => {
+    setSelecionados(new Set());
+  }, [pagina, porPagina, busca]);
+
+  const todosDaPaginaSelecionados =
+    noticiasPaginadas.length > 0 &&
+    noticiasPaginadas.every((n) => selecionados.has(n.id));
+
+  const handleSelecionarTodos = (checked: boolean) => {
+    if (checked) {
+      setSelecionados(new Set(noticiasPaginadas.map((n) => n.id)));
+    } else {
+      setSelecionados(new Set());
+    }
+  };
 
   if (carregando) return <div className="admin-loading">Carregando painel...</div>;
 
@@ -407,7 +415,7 @@ export function AdminNoticiasView() {
             <div className="flex items-center gap-2 p-4 pb-0 md:hidden">
               <Checkbox
                 id="select-all-mobile"
-                checked={noticias.length > 0 && selecionados.size === noticias.length}
+                checked={todosDaPaginaSelecionados}
                 onCheckedChange={(c) => handleSelecionarTodos(c as boolean)}
                 aria-label="Selecionar tudo"
               />
@@ -505,7 +513,7 @@ export function AdminNoticiasView() {
                   <tr>
                     <th className="px-4 py-3 w-[40px]">
                       <Checkbox
-                        checked={noticias.length > 0 && selecionados.size === noticias.length}
+                        checked={todosDaPaginaSelecionados}
                         onCheckedChange={(c) => handleSelecionarTodos(c as boolean)}
                         aria-label="Selecionar tudo"
                       />
@@ -745,38 +753,23 @@ export function AdminNoticiasView() {
                               </Button>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-[1fr_160px]">
-                              <div className="grid gap-4">
-                                <ImageUploader
-                                  url={imagem.url}
-                                  onChange={(novaUrl) => atualizarImagem(index, "url", novaUrl)}
-                                  pasta="noticias"
-                                  label="Arquivo da imagem"
-                                  ajuda="Selecione uma imagem para enviar ao Supabase (até 5 MB)"
+                            <div className="grid gap-4">
+                              <ImageUploader
+                                url={imagem.url}
+                                onChange={(novaUrl) => atualizarImagem(index, "url", novaUrl)}
+                                pasta="noticias"
+                                label="Arquivo da imagem"
+                                ajuda="Selecione uma imagem para enviar ao Supabase (até 5 MB)"
+                              />
+                              <Campo label="Texto alternativo">
+                                <input
+                                  value={imagem.textoAlternativo}
+                                  onChange={(event) =>
+                                    atualizarImagem(index, "textoAlternativo", event.target.value)
+                                  }
+                                  className="admin-input"
                                 />
-                                <Campo label="Texto alternativo">
-                                  <input
-                                    value={imagem.textoAlternativo}
-                                    onChange={(event) =>
-                                      atualizarImagem(index, "textoAlternativo", event.target.value)
-                                    }
-                                    className="admin-input"
-                                  />
-                                </Campo>
-                              </div>
-                              <div className="aspect-square overflow-hidden rounded-md border border-admin-border bg-white">
-                                {imagem.url.trim() ? (
-                                  <img
-                                    src={imagem.url}
-                                    alt={imagem.textoAlternativo || "Previa da imagem"}
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="flex h-full items-center justify-center text-admin-muted">
-                                    <ImageIcon className="h-8 w-8" />
-                                  </div>
-                                )}
-                              </div>
+                              </Campo>
                             </div>
 
                             <div className="grid gap-4 md:grid-cols-3">

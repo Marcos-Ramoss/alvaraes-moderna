@@ -90,14 +90,6 @@ export function AdminComerciosView() {
   const [porPagina, setPorPagina] = useState(10);
   const etapas = ["Dados principais", "Detalhes", "Contato", "Midias", "Pré-visualização", "Publicação"];
 
-  function handleSelecionarTodos(checked: boolean) {
-    if (checked) {
-      setSelecionados(new Set(comercios.map((c) => c.id)));
-    } else {
-      setSelecionados(new Set());
-    }
-  }
-
   function handleSelecionarUm(id: string, checked: boolean) {
     const next = new Set(selecionados);
     if (checked) next.add(id);
@@ -131,6 +123,21 @@ export function AdminComerciosView() {
   }, [busca, porPagina]);
   const paginaAtual = Math.min(pagina, Math.max(1, Math.ceil(filtrados.length / porPagina)));
   const paginados = filtrados.slice((paginaAtual - 1) * porPagina, paginaAtual * porPagina);
+
+  useEffect(() => {
+    setSelecionados(new Set());
+  }, [pagina, porPagina, busca]);
+
+  const todosDaPaginaSelecionados =
+    paginados.length > 0 && paginados.every((c) => selecionados.has(c.id));
+
+  function handleSelecionarTodos(checked: boolean) {
+    if (checked) {
+      setSelecionados(new Set(paginados.map((c) => c.id)));
+    } else {
+      setSelecionados(new Set());
+    }
+  }
   if (carregando) return <div className="admin-loading">Carregando painel...</div>;
   const indiceEtapa = Math.max(etapas.indexOf(etapaAtual), 0);
 
@@ -430,7 +437,7 @@ export function AdminComerciosView() {
                 <tr>
                   <th className="px-4 py-3 w-[40px]">
                     <Checkbox
-                      checked={comercios.length > 0 && selecionados.size === comercios.length}
+                      checked={todosDaPaginaSelecionados}
                       onCheckedChange={(c) => handleSelecionarTodos(c as boolean)}
                       aria-label="Selecionar tudo"
                     />
@@ -690,38 +697,23 @@ export function AdminComerciosView() {
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                            <div className="grid gap-4 md:grid-cols-[1fr_160px]">
-                              <div className="grid gap-4">
-                                <ImageUploader
-                                  url={imagem.url}
-                                  onChange={(novaUrl) => atualizarImagem(index, "url", novaUrl)}
-                                  pasta="comercios"
-                                  label="Foto do comércio"
-                                  ajuda="Selecione a foto ou logo do comércio para o Supabase (até 5 MB)"
+                            <div className="grid gap-4">
+                              <ImageUploader
+                                url={imagem.url}
+                                onChange={(novaUrl) => atualizarImagem(index, "url", novaUrl)}
+                                pasta="comercios"
+                                label="Foto do comércio"
+                                ajuda="Selecione a foto ou logo do comércio para o Supabase (até 5 MB)"
+                              />
+                              <Campo label="Texto alternativo">
+                                <input
+                                  value={imagem.textoAlternativo}
+                                  onChange={(event) =>
+                                    atualizarImagem(index, "textoAlternativo", event.target.value)
+                                  }
+                                  className="admin-input"
                                 />
-                                <Campo label="Texto alternativo">
-                                  <input
-                                    value={imagem.textoAlternativo}
-                                    onChange={(event) =>
-                                      atualizarImagem(index, "textoAlternativo", event.target.value)
-                                    }
-                                    className="admin-input"
-                                  />
-                                </Campo>
-                              </div>
-                              <div className="aspect-square overflow-hidden rounded-md border border-admin-border bg-white">
-                                {imagem.url.trim() ? (
-                                  <img
-                                    src={imagem.url}
-                                    alt={imagem.textoAlternativo || "Prévia da imagem"}
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="flex h-full items-center justify-center text-admin-muted">
-                                    <ImageIcon className="h-8 w-8" />
-                                  </div>
-                                )}
-                              </div>
+                              </Campo>
                             </div>
                             <div className="grid gap-4 md:grid-cols-3">
                               <Campo label="Crédito">

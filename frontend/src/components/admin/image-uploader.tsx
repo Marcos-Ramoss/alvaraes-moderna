@@ -91,9 +91,9 @@ export function ImageUploader({
           />
 
           {url.trim() ? (
-            <div className="relative group overflow-hidden rounded-lg border border-border bg-secondary/30 p-2">
-              <div className="flex items-center gap-3">
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border border-border bg-background">
+            <div className="relative group overflow-hidden rounded-lg border border-border bg-secondary/30 p-2.5 max-w-full">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-border bg-background shadow-xs">
                   <img
                     src={url}
                     alt="Prévia da imagem"
@@ -104,15 +104,20 @@ export function ImageUploader({
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-foreground">{url}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Imagem carregada</p>
+                  <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                    <span className="truncate">Imagem anexada com sucesso</span>
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                    Armazenada no Supabase Storage
+                  </p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 shrink-0">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs"
+                    className="h-8 text-xs font-medium"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={enviando}
                   >
