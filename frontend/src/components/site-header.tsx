@@ -18,17 +18,38 @@ import { GlobalSearch } from "./global-search";
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { canInstall, promptInstall } = usePwaInstall();
+  const { canInstall, promptInstall, isIos, isInstalled, isSupported } = usePwaInstall();
 
   const handleInstallClick = () => {
+    // 1. Se o prompt está disponível, iniciamos a instalação normalmente.
     if (canInstall) {
       promptInstall();
-    } else {
-      toast.info("Já instalado", {
+      return;
+    } 
+    
+    // 2. Se já sabemos que está instalado (via PWA standalone, localStorage, ou porque o navegador suporta o prompt mas não o disparou)
+    if (isInstalled || (isSupported && !isIos)) {
+      toast.info("Este aplicativo já está instalado neste dispositivo.", {
         description: "Procure nos seus apps ou na tela inicial.",
         position: "top-center",
       });
-    }
+      return;
+    } 
+    
+    // 3. Se for iOS (que não dispara o prompt, mas tem o botão de compartilhar)
+    if (isIos) {
+      toast("Para instalar no iPhone", {
+        description: "Toque em Compartilhar (ícone com a seta pra cima) e depois em 'Adicionar à Tela de Início'.",
+        position: "top-center",
+        duration: 8000,
+      });
+      return;
+    } 
+    
+    // 4. Se chegou aqui, o dispositivo realmente não é compatível (ex: Firefox no PC/Android que não suporta a API, ou modo incógnito)
+    toast.info("Este aplicativo não é compatível com este dispositivo.", {
+      position: "top-center",
+    });
   };
 
   return (
