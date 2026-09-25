@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppPagination } from "@/components/app-pagination";
 import {
   Carousel,
@@ -34,6 +34,14 @@ export function NoticiasListaView({
   const [pagina, setPagina] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(ITENS_POR_PAGINA_INICIAL);
 
+  const listaRef = useRef<HTMLElement>(null);
+  const mudouPaginaRef = useRef(false);
+
+  const mudarPagina = (novaPagina: number) => {
+    mudouPaginaRef.current = true;
+    setPagina(novaPagina);
+  };
+
   useEffect(() => {
     noticiasApi.listarCategorias().then(res => setCategorias(res)).catch(() => {});
     noticiasApi.listar({ destaque: true, limite: 4 }).then(res => setDestaques(res.dados)).catch(() => {});
@@ -45,12 +53,6 @@ export function NoticiasListaView({
     setPagina(1);
   }, [categoriaBusca]);
 
-
-
-  
-
-  
-
   useEffect(() => {
     setCarregando(true);
     setErro("");
@@ -59,6 +61,12 @@ export function NoticiasListaView({
       .then(res => {
         setNoticias(res.dados);
         setTotalItems(res.total);
+        if (mudouPaginaRef.current) {
+          mudouPaginaRef.current = false;
+          setTimeout(() => {
+            listaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 60);
+        }
       })
       .catch((error) =>
         setErro(error instanceof Error ? error.message : "Não foi possível carregar noticias."),
@@ -218,13 +226,13 @@ export function NoticiasListaView({
             Pesquisar
           </button>
         </form>
-        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex items-center flex-nowrap gap-2 overflow-x-auto pb-2 pt-1 scrollbar-hide whitespace-nowrap">
           {[{ slug: "Todas", nome: "Todas" }, ...categorias].map((c) => (
             <button
               key={c.slug}
               type="button"
-              onClick={() => setCategory(c.slug)}
-              className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
+              onClick={() => { setCategory(c.slug); setPagina(1); }}
+              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
                 category === c.slug
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background/70 text-foreground/70 hover:border-primary"
@@ -236,7 +244,7 @@ export function NoticiasListaView({
         </div>
       </section>
 
-      <section id="lista-noticias" className="scroll-mt-24">
+      <section id="lista-noticias" ref={listaRef} className="scroll-mt-24 min-h-[480px]">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="font-display text-2xl text-primary">Todas as noticias</h2>
@@ -251,7 +259,7 @@ export function NoticiasListaView({
         {carregando ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="h-64 rounded-lg bg-muted" />
+              <NoticiaCardSkeleton key={index} />
             ))}
           </div>
         ) : (
@@ -276,7 +284,7 @@ export function NoticiasListaView({
             totalItems={totalItems}
             page={pagina}
             itemsPerPage={itensPorPagina}
-            onPageChange={setPagina}
+            onPageChange={mudarPagina}
             onItemsPerPageChange={setItensPorPagina}
             selectId="noticias-por-pagina"
           />
@@ -300,6 +308,24 @@ export function NoticiasListaView({
           Inscreva-se -&gt;
         </Link>
       </section>
+    </div>
+  );
+}
+
+function NoticiaCardSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm animate-pulse">
+      <div className="aspect-[16/9] w-full bg-muted" />
+      <div className="p-3 space-y-2.5">
+        <div className="h-5 w-20 rounded bg-muted" />
+        <div className="h-4 w-5/6 rounded bg-muted" />
+        <div className="h-3 w-full rounded bg-muted" />
+        <div className="h-3 w-4/6 rounded bg-muted" />
+        <div className="flex justify-between pt-2">
+          <div className="h-3 w-20 rounded bg-muted" />
+          <div className="h-3 w-12 rounded bg-muted" />
+        </div>
+      </div>
     </div>
   );
 }

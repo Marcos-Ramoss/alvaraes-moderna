@@ -207,10 +207,9 @@ export function SiteHeader() {
           aria-expanded={open}
           aria-controls="menu-mobile"
           className="
-            ml-auto shrink-0
+            ml-auto flex size-12 shrink-0 items-center justify-center
             rounded-full
             border border-border
-            p-2
             text-primary
             transition-colors
             hover:bg-secondary
@@ -218,9 +217,9 @@ export function SiteHeader() {
           "
         >
           {open ? (
-            <X className="size-5" />
+            <X className="size-6" />
           ) : (
-            <Menu className="size-5" />
+            <Menu className="size-6" />
           )}
 
           <span className="sr-only">
@@ -251,9 +250,9 @@ export function SiteHeader() {
                   className: "text-primary font-semibold",
                 }}
                 className="
-                  block
+                  flex min-h-[48px] items-center
                   border-b border-border/60
-                  py-3
+                  py-2
                   text-base
                   text-foreground/80
                   transition-colors
@@ -274,9 +273,9 @@ export function SiteHeader() {
                   className: "text-primary font-semibold",
                 }}
                 className="
-                  block
+                  flex min-h-[48px] items-center
                   border-b border-border/60
-                  py-3
+                  py-2
                   text-base
                   text-foreground/80
                   transition-colors
@@ -297,9 +296,9 @@ export function SiteHeader() {
                     className: "text-primary font-semibold",
                   }}
                   className="
-                    block
+                    flex min-h-[48px] items-center
                     border-b border-border/60
-                    py-3
+                    py-2
                     text-base
                     text-foreground/80
                     transition-colors
@@ -320,9 +319,9 @@ export function SiteHeader() {
                   setSearchOpen(true);
                 }}
                 className="
-                  flex w-full items-center gap-3
+                  flex min-h-[48px] w-full items-center gap-3
                   border-b border-border/60
-                  py-3
+                  py-2
                   text-base
                   text-foreground/80
                   transition-colors

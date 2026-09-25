@@ -69,6 +69,10 @@ function BoletimPage() {
           className="mt-8 grid gap-3 rounded-md border border-border bg-card p-4 md:grid-cols-[1fr_1fr_auto]"
         >
           <input
+            id="boletim-nome"
+            name="nome"
+            type="text"
+            autoComplete="name"
             value={nome}
             onChange={(event) => setNome(event.target.value)}
             required
@@ -78,10 +82,16 @@ function BoletimPage() {
             className="h-12 rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-primary"
           />
           <input
+            id="boletim-email"
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
-            type="email"
             maxLength={180}
             placeholder="Seu melhor e-mail"
             className="h-12 rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-primary"

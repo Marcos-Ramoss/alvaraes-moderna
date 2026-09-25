@@ -135,6 +135,10 @@ export function AnuncieView() {
           <label className="block">
             <span className="text-sm font-medium">Nome do responsavel</span>
             <input
+              id="anuncio-nome-responsavel"
+              name="nomeResponsavel"
+              type="text"
+              autoComplete="name"
               value={form.nomeResponsavel}
               onChange={(event) => setForm({ ...form, nomeResponsavel: event.target.value })}
               required
@@ -147,6 +151,10 @@ export function AnuncieView() {
           <label className="block">
             <span className="text-sm font-medium">Contato do responsavel</span>
             <input
+              id="anuncio-contato-responsavel"
+              name="contatoResponsavel"
+              type="text"
+              autoComplete="email tel"
               value={form.contatoResponsavel}
               onChange={(event) => setForm({ ...form, contatoResponsavel: event.target.value })}
               required
@@ -160,6 +168,10 @@ export function AnuncieView() {
           <label className="block">
             <span className="text-sm font-medium">Nome do comercio</span>
             <input
+              id="anuncio-nome-comercio"
+              name="nomeComercio"
+              type="text"
+              autoComplete="organization"
               value={form.nomeComercio}
               onChange={(event) => setForm({ ...form, nomeComercio: event.target.value })}
               required

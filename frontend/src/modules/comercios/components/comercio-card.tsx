@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Clock, MapPin, MessageCircle, Phone } from "lucide-react";
 import { Tag } from "@/components/ui-bits";
 import type { ComercioPublico } from "../types/comercio.types";
 
@@ -32,6 +33,11 @@ export function ComercioMiniCard({ comercio }: { comercio: ComercioPublico }) {
 
 export function ComercioCard({ comercio }: { comercio: ComercioPublico }) {
   const imagemPrincipal = obterImagemPrincipal(comercio);
+  const contatoParaLink = (comercio.whatsapp || comercio.telefone || "").replace(/\D/g, "");
+  const linkWhatsapp =
+    contatoParaLink.length >= 8
+      ? `https://wa.me/${contatoParaLink.length <= 11 ? `55${contatoParaLink}` : contatoParaLink}?text=${encodeURIComponent(`Olá! Vi o anúncio do ${comercio.nome} no portal Alvarães Conecta.`)}`
+      : undefined;
 
   return (
     <article className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm">
@@ -52,16 +58,83 @@ export function ComercioCard({ comercio }: { comercio: ComercioPublico }) {
           <Link to="/comercios/$slug" params={{ slug: comercio.slug }}>{comercio.nome}</Link>
         </h3>
         <p className="mt-2 line-clamp-2 min-h-8 text-xs leading-relaxed text-foreground/70">{comercio.descrição ?? comercio.area}</p>
-        <div className="mt-4 space-y-1 text-[11px] text-muted-foreground">
-          <p>⌖ {comercio.endereço ?? comercio.area}</p>
-          {comercio.telefone && <p>◉ {comercio.telefone}</p>}
-          {comercio.horários?.[0] && <p>◷ {comercio.horários[0]}</p>}
+        <div className="mt-4 space-y-1.5 text-[11px] text-muted-foreground">
+          <p className="flex items-center gap-1.5">
+            <MapPin className="size-3.5 shrink-0 text-primary/70" />
+            <span className="truncate">{comercio.endereço ?? comercio.area}</span>
+          </p>
+          {comercio.telefone && (
+            <p className="flex items-center gap-1.5">
+              <Phone className="size-3.5 shrink-0 text-primary/70" />
+              <span>{comercio.telefone}</span>
+            </p>
+          )}
+          {comercio.horários?.[0] && (
+            <p className="flex items-center gap-1.5">
+              <Clock className="size-3.5 shrink-0 text-primary/70" />
+              <span>{comercio.horários[0]}</span>
+            </p>
+          )}
         </div>
-        <div className="mt-auto pt-4">
-          {comercio.possuiPagina && <Link to="/comercios/$slug" params={{ slug: comercio.slug }} className="inline-flex rounded-full bg-secondary px-4 py-2 text-xs font-semibold text-primary">Ver detalhes →</Link>}
+        <div className="mt-auto pt-4 flex flex-wrap items-center gap-2">
+          {linkWhatsapp && (
+            <a
+              href={linkWhatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 active:bg-emerald-800"
+            >
+              <MessageCircle className="size-3.5" />
+              <span>WhatsApp</span>
+            </a>
+          )}
+          {comercio.possuiPagina ? (
+            <Link
+              to="/comercios/$slug"
+              params={{ slug: comercio.slug }}
+              className="inline-flex min-h-[36px] items-center rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-secondary/80"
+            >
+              Ver detalhes →
+            </Link>
+          ) : (
+            comercio.telefone && !linkWhatsapp && (
+              <a
+                href={`tel:${comercio.telefone.replace(/\D/g, "")}`}
+                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-secondary/80"
+              >
+                <Phone className="size-3.5" />
+                <span>Ligar</span>
+              </a>
+            )
+          )}
         </div>
       </div>
     </article>
   );
 }
+
+export function ComercioCardSkeleton() {
+  return (
+    <article className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm animate-pulse">
+      <div className="aspect-[16/9] w-full bg-muted" />
+      <div className="flex flex-1 flex-col p-4 space-y-3">
+        <div className="h-5 w-24 rounded bg-muted" />
+        <div className="h-6 w-3/4 rounded bg-muted" />
+        <div className="space-y-1.5">
+          <div className="h-3 w-full rounded bg-muted" />
+          <div className="h-3 w-4/5 rounded bg-muted" />
+        </div>
+        <div className="space-y-2 pt-2">
+          <div className="h-3 w-2/3 rounded bg-muted" />
+          <div className="h-3 w-1/2 rounded bg-muted" />
+        </div>
+        <div className="mt-auto pt-4 flex gap-2">
+          <div className="h-8 w-24 rounded-full bg-muted" />
+          <div className="h-8 w-24 rounded-full bg-muted" />
+        </div>
+      </div>
+    </article>
+  );
+}
+
 

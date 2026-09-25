@@ -101,7 +101,7 @@ export function AppPagination({
               type="button"
               onClick={() => goToPage(pageItem)}
               aria-current={pageItem === currentPage ? "page" : undefined}
-              className={`inline-flex h-10 min-w-10 items-center justify-center rounded-md px-3 text-sm font-semibold ${
+              className={`inline-flex h-11 min-w-11 sm:h-10 sm:min-w-10 items-center justify-center rounded-md px-3 text-sm font-semibold transition-colors ${
                 pageItem === currentPage
                   ? "bg-[#006b5d] text-white"
                   : "border border-[#ded8ca] bg-white text-[#456054] hover:bg-[#faf8f2]"
@@ -151,7 +151,7 @@ function PaginationButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`${className} h-10 w-10 items-center justify-center rounded-md border border-[#ded8ca] bg-white text-[#456054] hover:bg-[#faf8f2] disabled:opacity-50`}
+      className={`${className} h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-md border border-[#ded8ca] bg-white text-[#456054] hover:bg-[#faf8f2] disabled:opacity-50 transition-colors`}
     >
       {children}
     </button>

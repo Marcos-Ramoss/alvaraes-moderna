@@ -19,12 +19,12 @@ export function EventoCard({ evento, past }: { evento: EventoPublico; past?: boo
           />
         )}
         {imagemPrincipal && <div className="absolute inset-0 bg-black/35" />}
-        <div className="relative flex size-12 flex-col items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
-          <span className="text-[10px] font-bold uppercase">{mes}</span>
-          <strong className="font-display text-2xl leading-none">{data.getDate()}</strong>
+        <div className="relative flex min-w-14 flex-col items-center justify-center rounded-lg bg-primary px-2.5 py-1.5 text-primary-foreground shadow-lg ring-2 ring-white/30">
+          <span className="text-[10px] font-black uppercase tracking-wider text-primary-foreground/90">{mes}</span>
+          <strong className="font-display text-2xl font-bold leading-tight">{data.getDate()}</strong>
         </div>
         {past && (
-          <span className="absolute right-3 top-3 rounded-full bg-black/30 px-2 py-1 text-[10px] text-white">
+          <span className="absolute right-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
             Encerrado
           </span>
         )}
@@ -60,10 +60,30 @@ export function EventoCard({ evento, past }: { evento: EventoPublico; past?: boo
         <Link
           to="/agenda/$id"
           params={{ id: evento.id }}
-          className="mt-auto rounded-full bg-secondary px-3 py-2 text-center text-xs font-semibold text-primary"
+          className="mt-auto rounded-full bg-secondary px-3 py-2 text-center text-xs font-semibold text-primary transition-colors hover:bg-secondary/80"
         >
-          Ver detalhes -&gt;
+          Ver detalhes →
         </Link>
+      </div>
+    </li>
+  );
+}
+
+export function EventoCardSkeleton() {
+  return (
+    <li className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm animate-pulse list-none">
+      <div className="aspect-[16/9] w-full bg-muted" />
+      <div className="p-3 space-y-2.5 flex-1 flex flex-col">
+        <div className="h-5 w-20 rounded bg-muted" />
+        <div className="h-5 w-5/6 rounded bg-muted" />
+        <div className="h-3 w-full rounded bg-muted" />
+        <div className="space-y-1.5 pt-2">
+          <div className="h-3 w-1/2 rounded bg-muted" />
+          <div className="h-3 w-2/3 rounded bg-muted" />
+        </div>
+        <div className="mt-auto pt-3">
+          <div className="h-8 w-full rounded-full bg-muted" />
+        </div>
       </div>
     </li>
   );

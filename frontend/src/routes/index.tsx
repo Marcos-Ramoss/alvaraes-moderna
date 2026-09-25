@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Store, Calendar, GraduationCap, Users, Mail, Building2, MessageSquareText, type LucideIcon } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { DemoTag, EmptyState, PhotoPlaceholder, SectionHeader, Tag } from "@/components/ui-bits";
 import {
@@ -178,16 +179,20 @@ function Home() {
           <span className="hidden text-sm font-semibold text-primary sm:block">Explore o que a cidade oferece →</span>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <DiscoverCard iconUrl="https://cdn-icons-png.flaticon.com/512/5406/5406624.png" iconAlt="Ícone de comércio" title="Comércio local" text="Onde comprar, comer e contratar na sua cidade." to="/comercios" action="Explorar comercios →" />
-          <DiscoverCard iconUrl="https://cdn-icons-png.flaticon.com/512/1497/1497835.png" iconAlt="Ícone de agenda" title="Agenda" text="Eventos, festas e programação local." to="/agenda" action="Ver agenda →" />
-          <DiscoverCard iconUrl="https://cdn-icons-png.flaticon.com/512/2000/2000860.png" iconAlt="Ícone de curso online" title="Cursos e oportunidades" text="Vagas, cursos e inscrições para você." to="/cursos" action="Ver oportunidades →" />
-          <DiscoverCard iconUrl="https://cdn-icons-png.flaticon.com/512/5234/5234526.png" iconAlt="Ícone de história e cultura" title="Nossa gente, Nossas histórias" text="Histórias, cultura e pessoas que fazem Alvarães." to="/sobre" action="Conheça as histórias →" />
+          <DiscoverCard icon={Store} title="Comércio local" text="Onde comprar, comer e contratar na sua cidade." to="/comercios" action="Explorar comércios →" />
+          <DiscoverCard icon={Calendar} title="Agenda" text="Eventos, festas e programação local." to="/agenda" action="Ver agenda →" />
+          <DiscoverCard icon={GraduationCap} title="Cursos e oportunidades" text="Vagas, cursos e inscrições para você." to="/cursos" action="Ver oportunidades →" />
+          <DiscoverCard icon={Users} title="Nossa gente, Nossas histórias" text="Histórias, cultura e pessoas que fazem Alvarães." to="/sobre" action="Conheça as histórias →" />
         </div>
       </section>
 
       <section className="flex flex-col items-start justify-between gap-5 rounded-lg bg-secondary p-6 sm:flex-row sm:items-center sm:p-8"><div><h2 className="font-display text-2xl text-primary">Política e vida pública</h2><p className="mt-1 max-w-2xl text-sm text-foreground/70">Acompanhe decisões, ações e debates que afetam o município, com fontes identificadas e explicações claras.</p></div><Link to="/noticias" search={{ categoria: "politica-e-vida-publica" }} className="shrink-0 rounded-full border border-primary px-4 py-2 text-sm font-semibold text-primary">Ver publicações →</Link></section>
 
-      <section className="grid gap-4 md:grid-cols-3"><HomeCta to="/boletim" iconUrl="https://cdn-icons-png.flaticon.com/512/2504/2504727.png" iconAlt="Ícone do Gmail" title="Receba o resumo da semana" text="Notícias, agenda e inscrições abertas em uma leitura curta." action="Quero receber o boletim →" /><HomeCta to="/anuncie" iconUrl="https://cdn-icons-png.flaticon.com/512/5406/5406624.png" iconAlt="Ícone de comércio" title="Seu comércio faz parte da cidade" text="Apresente seu negócio a quem procura produtos e serviços." action="Quero incluir meu negócio →" /><HomeCta to="/contato" iconUrl="https://cdn-icons-png.flaticon.com/512/2644/2644746.png" iconAlt="Ícone de noticias do mundo" title="O que acontece perto de você?" text="Envie uma pauta, evento, história ou sugestão ao portal." action="Enviar sugestão →" /></section>
+      <section className="grid gap-4 md:grid-cols-3">
+        <HomeCta to="/boletim" icon={Mail} title="Receba o resumo da semana" text="Notícias, agenda e inscrições abertas em uma leitura curta." action="Quero receber o boletim →" />
+        <HomeCta to="/anuncie" icon={Building2} title="Seu comércio faz parte da cidade" text="Apresente seu negócio a quem procura produtos e serviços." action="Quero incluir meu negócio →" />
+        <HomeCta to="/contato" icon={MessageSquareText} title="O que acontece perto de você?" text="Envie uma pauta, evento, história ou sugestão ao portal." action="Enviar sugestão →" />
+      </section>
     </div>
   );
 }
@@ -196,12 +201,32 @@ function HomeSectionHeader({ title, text, to, cta }: { title: string; text?: str
   return <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="font-display text-2xl text-primary sm:text-3xl">{title}</h2>{text && <p className="mt-1 max-w-2xl text-sm text-foreground/70">{text}</p>}</div>{to && cta && (to === "/noticias" ? <Link to="/noticias" search={{}} className="shrink-0 text-sm font-semibold text-primary">{cta}</Link> : <Link to={to} className="shrink-0 text-sm font-semibold text-primary">{cta}</Link>)}</div>;
 }
 
-function HomeCta({ to, iconUrl, iconAlt, title, text, action }: { to: string; iconUrl: string; iconAlt: string; title: string; text: string; action: string }) {
-  return <article className="rounded-lg border border-border bg-card p-5 shadow-sm"><span className="flex size-10 items-center justify-center rounded-full bg-secondary p-2"><img src={iconUrl} alt={iconAlt} className="h-full w-full object-contain" /></span><h2 className="mt-3 font-display text-lg text-primary">{title}</h2><p className="mt-1 text-sm text-foreground/70">{text}</p><Link to={to} className="mt-4 inline-block rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">{action}</Link></article>;
+function HomeCta({ to, icon: Icon, title, text, action }: { to: string; icon: LucideIcon; title: string; text: string; action: string }) {
+  return (
+    <article className="rounded-lg border border-border bg-card p-5 shadow-sm">
+      <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Icon className="size-5" />
+      </span>
+      <h2 className="mt-3 font-display text-lg text-primary">{title}</h2>
+      <p className="mt-1 text-sm text-foreground/70">{text}</p>
+      <Link to={to} className="mt-4 inline-block rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+        {action}
+      </Link>
+    </article>
+  );
 }
 
-function DiscoverCard({ iconUrl, iconAlt, title, text, to, action }: { iconUrl: string; iconAlt: string; title: string; text: string; to: string; action: string }) {
-  return <Link to={to} className="rounded-xl border border-border bg-card p-4 shadow-sm transition-transform hover:-translate-y-0.5"><span className="flex size-10 items-center justify-center rounded-full bg-secondary p-2"><img src={iconUrl} alt={iconAlt} className="h-full w-full object-contain" /></span><h3 className="mt-3 font-display text-base text-primary">{title}</h3><p className="mt-1 min-h-10 text-xs leading-relaxed text-foreground/70">{text}</p><span className="mt-3 block text-xs font-semibold text-primary">{action}</span></Link>;
+function DiscoverCard({ icon: Icon, title, text, to, action }: { icon: LucideIcon; title: string; text: string; to: string; action: string }) {
+  return (
+    <Link to={to} className="rounded-xl border border-border bg-card p-4 shadow-sm transition-transform hover:-translate-y-0.5">
+      <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Icon className="size-5" />
+      </span>
+      <h3 className="mt-3 font-display text-base text-primary">{title}</h3>
+      <p className="mt-1 min-h-10 text-xs leading-relaxed text-foreground/70">{text}</p>
+      <span className="mt-3 block text-xs font-semibold text-primary">{action}</span>
+    </Link>
+  );
 }
 
 
