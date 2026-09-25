@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { AppPagination } from "@/components/app-pagination";
 import { EmptyState } from "@/components/ui-bits";
 import { eventosApi } from "../api/eventos.api";
-import { Calendar, EventoCard } from "../components/evento-card";
+import { Calendar, EventoCard, EventoCardSkeleton } from "../components/evento-card";
 import type { EventoPublico } from "../types/evento.types";
 
 const ITENS_POR_PAGINA_INICIAL = 6;
@@ -21,6 +21,15 @@ export function EventosListaView() {
     ITENS_POR_PAGINA_INICIAL,
   );
   const [dataSelecionada, setDataSelecionada] = useState<Date | null>(null);
+
+  const proximosRef = useRef<HTMLElement>(null);
+
+  const mudarPaginaProximos = (novaPagina: number) => {
+    setPaginaPróximos(novaPagina);
+    setTimeout(() => {
+      proximosRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
 
   useEffect(() => {
     setCarregando(true);
@@ -152,7 +161,7 @@ export function EventosListaView() {
             Pesquisar
           </button>
         </form>
-        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex items-center flex-nowrap gap-2 overflow-x-auto pb-2 pt-1 scrollbar-hide whitespace-nowrap">
           {[{ slug: "Todas", nome: "Todos" }, ...categorias.map(([slug, nome]) => ({ slug, nome }))]
             .slice(0, 6)
             .map((cat) => (
@@ -160,7 +169,7 @@ export function EventosListaView() {
                 key={cat.slug}
                 type="button"
                 onClick={() => setCategory(cat.slug)}
-                className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
+                className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
                   category === cat.slug
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-background/70 text-foreground/70 hover:border-primary"
@@ -170,7 +179,7 @@ export function EventosListaView() {
               </button>
             ))}
         </div>
-        <span className="rounded-full border border-border bg-primary px-4 py-2 text-center text-[11px] font-semibold text-primary-foreground">
+        <span className="shrink-0 rounded-full border border-border bg-primary px-4 py-2 text-center text-[11px] font-semibold text-primary-foreground">
           Próximos eventos
         </span>
       </section>
@@ -178,7 +187,7 @@ export function EventosListaView() {
       {erro && <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_235px]">
-        <section>
+        <section id="proximos-eventos" ref={proximosRef} className="scroll-mt-24 min-h-[480px]">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display text-2xl text-primary">
               {dataSelecionada
@@ -194,11 +203,15 @@ export function EventosListaView() {
                 Limpar filtro
               </button>
             ) : (
-              <span className="text-xs font-semibold text-primary">Ver todos os eventos -&gt;</span>
+              <span className="text-xs font-semibold text-primary">Ver todos os eventos →</span>
             )}
           </div>
           {carregando ? (
-            <ListaSkeleton />
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <EventoCardSkeleton key={index} />
+              ))}
+            </ul>
           ) : upcoming.length > 0 ? (
             <>
               <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -210,7 +223,7 @@ export function EventosListaView() {
                 totalItems={upcoming.length}
                 page={paginaAtualPróximos}
                 itemsPerPage={itensPorPaginaPróximos}
-                onPageChange={setPaginaPróximos}
+                onPageChange={mudarPaginaProximos}
                 onItemsPerPageChange={setItensPorPaginaPróximos}
                 selectId="eventos-próximos-por-pagina"
               />

@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppPagination } from "@/components/app-pagination";
 import { EmptyState } from "@/components/ui-bits";
-import { ComercioCard, ComercioMiniCard } from "../components/comercio-card";
+import { ComercioCard, ComercioCardSkeleton, ComercioMiniCard } from "../components/comercio-card";
 import { comerciosApi } from "../api/comercios.api";
 import type { ComercioPublico } from "../types/comercio.types";
 
@@ -22,6 +22,14 @@ export function ComerciosListaView() {
   const [pagina, setPagina] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(ITENS_POR_PAGINA_INICIAL);
 
+  const listaRef = useRef<HTMLElement>(null);
+  const mudouPaginaRef = useRef(false);
+
+  const mudarPagina = (novaPagina: number) => {
+    mudouPaginaRef.current = true;
+    setPagina(novaPagina);
+  };
+
   useEffect(() => {
     comerciosApi.listarCategorias().then(setCategorias).catch(console.error);
     comerciosApi.listar({ limite: 4, patrocinado: true, possuiPagina: true })
@@ -37,6 +45,12 @@ export function ComerciosListaView() {
       .then(res => {
         setComercios(res.dados);
         setTotalItems(res.total);
+        if (mudouPaginaRef.current) {
+          mudouPaginaRef.current = false;
+          setTimeout(() => {
+            listaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 60);
+        }
       })
       .catch((error) =>
         setErro(error instanceof Error ? error.message : "Não foi possível carregar comercios."),
@@ -93,13 +107,13 @@ export function ComerciosListaView() {
             Pesquisar
           </button>
         </form>
-        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex items-center flex-nowrap gap-2 overflow-x-auto pb-2 pt-1 scrollbar-hide whitespace-nowrap">
           {[{ slug: "Todas", nome: "Todas" }, ...categorias].map((cat) => (
             <button
               key={cat.slug}
               type="button"
               onClick={() => { setCategory(cat.slug); setPagina(1); }}
-              className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
+              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
                 category === cat.slug
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background/70 text-foreground/70 hover:border-primary"
@@ -134,7 +148,7 @@ export function ComerciosListaView() {
         </div>
       </section>
 
-      <section>
+      <section id="lista-comercios" ref={listaRef} className="scroll-mt-24 min-h-[480px]">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="font-display text-2xl text-primary sm:text-3xl">
@@ -152,8 +166,10 @@ export function ComerciosListaView() {
         </div>
 
         {carregando ? (
-          <div className="flex h-32 items-center justify-center rounded-lg border border-border bg-card/50">
-            <span className="text-sm text-muted-foreground">Carregando...</span>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <ComercioCardSkeleton key={index} />
+            ))}
           </div>
         ) : totalItems === 0 ? (
           <EmptyState>Nenhum comércio encontrado.</EmptyState>
@@ -191,7 +207,7 @@ export function ComerciosListaView() {
               totalItems={totalItems}
               page={pagina}
               itemsPerPage={itensPorPagina}
-              onPageChange={setPagina}
+              onPageChange={mudarPagina}
               onItemsPerPageChange={setItensPorPagina}
               selectId="comercios-por-pagina"
             />

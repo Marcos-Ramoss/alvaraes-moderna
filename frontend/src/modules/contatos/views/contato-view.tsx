@@ -99,6 +99,10 @@ export function ContatoView() {
         <label className="block">
           <span className="text-sm font-medium">Seu nome</span>
           <input
+            id="contato-nome"
+            name="nome"
+            type="text"
+            autoComplete="name"
             value={form.nome}
             onChange={(event) => setForm({ ...form, nome: event.target.value })}
             required
@@ -111,6 +115,10 @@ export function ContatoView() {
         <label className="block">
           <span className="text-sm font-medium">Como podemos responder</span>
           <input
+            id="contato-resposta"
+            name="contatoResposta"
+            type="text"
+            autoComplete="email tel"
             value={form.contatoResposta}
             onChange={(event) => setForm({ ...form, contatoResposta: event.target.value })}
             required
@@ -124,6 +132,9 @@ export function ContatoView() {
         <label className="block">
           <span className="text-sm font-medium">Assunto</span>
           <input
+            id="contato-assunto"
+            name="assunto"
+            type="text"
             value={form.assunto}
             onChange={(event) => setForm({ ...form, assunto: event.target.value })}
             maxLength={160}
@@ -139,6 +150,8 @@ export function ContatoView() {
             </span>
           </span>
           <textarea
+            id="contato-mensagem"
+            name="mensagem"
             value={form.mensagem}
             onChange={(event) => setForm({ ...form, mensagem: event.target.value })}
             required

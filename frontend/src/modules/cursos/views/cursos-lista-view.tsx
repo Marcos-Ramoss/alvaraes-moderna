@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { AppPagination } from "@/components/app-pagination";
 import { EmptyState } from "@/components/ui-bits";
 import { cursosApi } from "../api/cursos.api";
 import type { OportunidadePublica } from "../types/curso.types";
-import { CursoCard } from "../components/curso-card";
+import { CursoCard, CursoCardSkeleton } from "../components/curso-card";
 
 const ITENS_POR_PAGINA_INICIAL = 6;
 
@@ -26,6 +26,14 @@ export function CursosListaView() {
   const [paginaEncerradas, setPaginaEncerradas] = useState(1);
   const [itensPorPaginaEncerradas, setItensPorPaginaEncerradas] = useState(ITENS_POR_PAGINA_INICIAL);
 
+  const openSectionRef = useRef<HTMLElement>(null);
+  const mudouPaginaAbertasRef = useRef(false);
+
+  const mudarPaginaAbertas = (novaPagina: number) => {
+    mudouPaginaAbertasRef.current = true;
+    setPaginaAbertas(novaPagina);
+  };
+
   useEffect(() => {
     setCarregandoOpen(true);
     setErroOpen("");
@@ -34,6 +42,12 @@ export function CursosListaView() {
       .then((res) => {
         setOpen(res.dados);
         setTotalOpen(res.total);
+        if (mudouPaginaAbertasRef.current) {
+          mudouPaginaAbertasRef.current = false;
+          setTimeout(() => {
+            openSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 60);
+        }
       })
       .catch((error) => setErroOpen(error instanceof Error ? error.message : "Erro."))
       .finally(() => setCarregandoOpen(false));
@@ -100,10 +114,14 @@ export function CursosListaView() {
 
       {(erroOpen || erroClosed) && <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{erroOpen || erroClosed}</p>}
 
-      <section>
+      <section id="cursos-abertos" ref={openSectionRef} className="scroll-mt-24 min-h-[480px]">
         <h2 className="font-display text-2xl font-semibold">Inscrições abertas</h2>
         {carregandoOpen ? (
-          <ListaSkeleton />
+          <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <CursoCardSkeleton key={index} />
+            ))}
+          </ul>
         ) : totalOpen > 0 ? (
           <>
             <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -116,7 +134,7 @@ export function CursosListaView() {
                 totalItems={totalOpen}
                 page={paginaAbertas}
                 itemsPerPage={itensPorPaginaAbertas}
-                onPageChange={setPaginaAbertas}
+                onPageChange={mudarPaginaAbertas}
                 onItemsPerPageChange={setItensPorPaginaAbertas}
                 selectId="cursos-abertos-por-pagina"
               />
@@ -132,7 +150,11 @@ export function CursosListaView() {
       <section>
         <h2 className="font-display text-2xl font-semibold">Encerradas</h2>
         {carregandoClosed ? (
-          <ListaSkeleton />
+          <ul className="mt-4 grid gap-4 opacity-80 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <CursoCardSkeleton key={index} />
+            ))}
+          </ul>
         ) : totalClosed > 0 ? (
           <>
             <ul className="mt-4 grid gap-4 opacity-80 sm:grid-cols-2 lg:grid-cols-3">
@@ -157,16 +179,6 @@ export function CursosListaView() {
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function ListaSkeleton() {
-  return (
-    <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="h-72 rounded-xl bg-muted" />
-      ))}
     </div>
   );
 }
