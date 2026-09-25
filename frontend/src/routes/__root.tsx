@@ -81,35 +81,44 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" },
-      { title: "Alvarães Moderna — Alvarães perto de você" },
-      { name: "theme-color", content: "#12372a" },
-      {
-        name: "description",
-        content:
-          "Notícias, comercios, serviços, agenda e oportunidades da cidade de Alvarães, no Amazonas.",
-      },
-      { name: "author", content: "Alvarães Moderna" },
-      { property: "og:site_name", content: "Alvarães Moderna" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/logo.png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Source+Sans+3:wght@400;600;700&display=swap",
-      },
-      { rel: "icon", href: "/logo.png", type: "image/png" },
-    ],
-  }),
+  head: (ctx) => {
+    const isAdmin =
+      ctx?.matches?.some(
+        (m) => m.pathname?.startsWith("/admin") || m.id?.startsWith("/admin")
+      ) ?? false;
+
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" },
+        { title: isAdmin ? "Painel administrativo - Alvarães Moderna" : "Alvarães Moderna — Alvarães perto de você" },
+        { name: "theme-color", content: "#12372a" },
+        { name: "apple-mobile-web-app-title", content: isAdmin ? "Alvarães Admin" : "Alvarães" },
+        {
+          name: "description",
+          content: isAdmin
+            ? "Painel de administração e gestão de conteúdo do portal Alvarães Moderna."
+            : "Notícias, comercios, serviços, agenda e oportunidades da cidade de Alvarães, no Amazonas.",
+        },
+        { name: "author", content: "Alvarães Moderna" },
+        { property: "og:site_name", content: "Alvarães Moderna" },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "manifest", href: isAdmin ? "/manifest-admin.webmanifest" : "/manifest.webmanifest" },
+        { rel: "apple-touch-icon", href: "/logo.png" },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Source+Sans+3:wght@400;600;700&display=swap",
+        },
+        { rel: "icon", href: "/logo.png", type: "image/png" },
+      ],
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -120,6 +129,18 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.__pwaPrompt = null;
+              window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                window.__pwaPrompt = e;
+                window.dispatchEvent(new Event('pwa-prompt-available'));
+              });
+            `,
+          }}
+        />
         <HeadContent />
       </head>
       <body>
@@ -178,6 +199,15 @@ function RootComponent() {
         });
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    const targetHref = isAdminRoute ? "/manifest-admin.webmanifest" : "/manifest.webmanifest";
+    if (manifestLink && manifestLink.getAttribute("href") !== targetHref) {
+      manifestLink.setAttribute("href", targetHref);
+    }
+  }, [isAdminRoute]);
 
   return (
     <QueryClientProvider client={queryClient}>

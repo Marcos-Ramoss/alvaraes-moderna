@@ -9,63 +9,104 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+declare global {
+  interface Window {
+    __pwaPrompt?: BeforeInstallPromptEvent | null;
+  }
+}
+
+function getInitialPrompt(): BeforeInstallPromptEvent | null {
+  if (typeof window !== "undefined" && window.__pwaPrompt) {
+    return window.__pwaPrompt;
+  }
+  return globalDeferredPrompt;
+}
+
+let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
+const promptListeners = new Set<(prompt: BeforeInstallPromptEvent | null) => void>();
+
+function notifyPromptListeners() {
+  promptListeners.forEach((listener) => listener(getInitialPrompt()));
+}
+
+if (typeof window !== "undefined") {
+  if (window.__pwaPrompt) {
+    globalDeferredPrompt = window.__pwaPrompt;
+  }
+
+  window.addEventListener("pwa-prompt-available", () => {
+    if (window.__pwaPrompt) {
+      globalDeferredPrompt = window.__pwaPrompt;
+      notifyPromptListeners();
+    }
+  });
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    globalDeferredPrompt = e as BeforeInstallPromptEvent;
+    window.__pwaPrompt = e as BeforeInstallPromptEvent;
+    notifyPromptListeners();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    globalDeferredPrompt = null;
+    window.__pwaPrompt = null;
+    notifyPromptListeners();
+  });
+}
+
 export function usePwaInstall() {
-  const deferredPrompt = useRef<BeforeInstallPromptEvent | null>(null);
-  const [canInstall, setCanInstall] = useState(false);
+  const [canInstall, setCanInstall] = useState(() => Boolean(getInitialPrompt()));
   const [isIos, setIsIos] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const ios = /iphone|ipad|ipod/.test(userAgent) ||
+    const ios =
+      /iphone|ipad|ipod/.test(userAgent) ||
       (/macintosh/.test(userAgent) && window.navigator.maxTouchPoints > 1);
     setIsIos(ios);
 
     const displayMode = window.matchMedia("(display-mode: standalone)");
     const updateStandalone = () => {
-      const standalone = displayMode.matches ||
-        ("standalone" in window.navigator && window.navigator.standalone === true);
+      const standalone =
+        displayMode.matches ||
+        ("standalone" in window.navigator &&
+          (window.navigator as unknown as { standalone?: boolean }).standalone === true);
       setIsStandalone(standalone);
       if (standalone) {
         setIsInstalled(true);
-        deferredPrompt.current = null;
         setCanInstall(false);
       }
     };
     updateStandalone();
 
-    const handler = (e: Event) => {
-      e.preventDefault();
-      deferredPrompt.current = e as BeforeInstallPromptEvent;
-      setCanInstall(true);
-      setIsInstalled(false);
+    const handlePromptChange = (prompt: BeforeInstallPromptEvent | null) => {
+      setCanInstall(Boolean(prompt));
+      if (prompt) {
+        setIsInstalled(false);
+      }
     };
 
-    const handleInstalled = () => {
-      deferredPrompt.current = null;
-      setCanInstall(false);
-      setIsInstalled(true);
-    };
-
-    window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", handleInstalled);
+    promptListeners.add(handlePromptChange);
     displayMode.addEventListener("change", updateStandalone);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-      window.removeEventListener("appinstalled", handleInstalled);
+      promptListeners.delete(handlePromptChange);
       displayMode.removeEventListener("change", updateStandalone);
-      deferredPrompt.current = null;
     };
   }, []);
 
   const promptInstall = async () => {
-    const prompt = deferredPrompt.current;
+    const prompt = getInitialPrompt();
     if (!prompt) return;
 
-    // Each browser prompt can only be used once, including dismissed prompts.
-    deferredPrompt.current = null;
+    globalDeferredPrompt = null;
+    if (typeof window !== "undefined") {
+      window.__pwaPrompt = null;
+    }
+    notifyPromptListeners();
     setCanInstall(false);
     await prompt.prompt();
     const { outcome } = await prompt.userChoice;
