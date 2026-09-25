@@ -37,7 +37,7 @@ export const Route = createFileRoute("/comercios/$slug")({
 
     const { business } = loaderData;
     const desc =
-      business.descrição ??
+      business.descricao ??
       `${business.nome} - ${business.categoria.nome} em Alvarães, Amazonas.`;
 
     return {

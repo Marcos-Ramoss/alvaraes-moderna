@@ -30,6 +30,7 @@ export class ComerciosService {
   async listarPublicados(filtros: ListarComerciosQueryDto) {
     const { itens, total } = await this.comerciosRepository.listarPublicados({
       pagina: filtros.pagina ?? 1,
+      ordenacao: filtros.ordenacao,
       limite: Math.min(filtros.limite ?? 1000, 1000), // Proteção
       ...(filtros.busca ? { busca: filtros.busca } : {}),
       ...(filtros.categoria ? { categoria: filtros.categoria } : {}),

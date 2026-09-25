@@ -4,6 +4,7 @@ import type { MidiaResponseDto } from "../../midias/dto/midia.response.dto.js";
 export type OportunidadeResumoResponseDto = {
   id: string;
   titulo: string;
+  categoria?: { id: string; nome: string; slug: string };
   organizador: string;
   modalidade: ModalidadeOportunidade;
   local?: string;

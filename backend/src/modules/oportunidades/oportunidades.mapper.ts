@@ -30,6 +30,7 @@ export class OportunidadesMapper {
     return {
       id: oportunidade.id,
       titulo: oportunidade.titulo,
+      ...(oportunidade.categoria ? { categoria: { id: oportunidade.categoria.id, nome: oportunidade.categoria.nome, slug: oportunidade.categoria.slug } } : {}),
       organizador: oportunidade.organizador,
       modalidade: oportunidade.modalidade,
       ...(oportunidade.local ? { local: oportunidade.local } : {}),

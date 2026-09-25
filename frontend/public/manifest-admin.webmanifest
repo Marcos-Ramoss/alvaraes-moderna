@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "Alvarães Moderna - Painel Admin",
+  "short_name": "Alvarães Admin",
+  "description": "Painel administrativo e gestão de conteúdo de Alvarães Moderna",
+  "id": "/admin",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#12372a",
+  "theme_color": "#12372a",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Notícias",
+      "url": "/admin/noticias",
+      "description": "Gerenciar notícias e publicações"
+    },
+    {
+      "name": "Comércios",
+      "url": "/admin/comercios",
+      "description": "Gerenciar estabelecimentos comerciais"
+    },
+    {
+      "name": "Agenda",
+      "url": "/admin/eventos",
+      "description": "Gerenciar eventos municipais"
+    },
+    {
+      "name": "Ver Portal",
+      "url": "/",
+      "description": "Acessar o portal público de notícias"
+    }
+  ]
+}

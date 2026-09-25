@@ -42,7 +42,7 @@ export function EventoCard({ evento, past }: { evento: EventoPublico; past?: boo
         <h3 className="mt-2 line-clamp-2 font-display text-base leading-tight text-primary">
           {evento.titulo}
         </h3>
-        <p className="mt-1 line-clamp-2 text-xs text-foreground/70">{evento.descrição}</p>
+        <p className="mt-1 line-clamp-2 text-xs text-foreground/70">{evento.descricao}</p>
         <dl className="mt-3 space-y-1 text-[11px] text-muted-foreground">
           <div>
             <dt className="inline font-semibold text-primary">Horário: </dt>

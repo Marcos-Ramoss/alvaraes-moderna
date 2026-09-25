@@ -24,7 +24,7 @@ export function NoticiaCard({ noticia }: { noticia: NoticiaPublica }) {
       <div className="p-3">
         <div className="flex flex-wrap gap-1.5">
           <Tag>{noticia.categoria.nome}</Tag>
-          {noticia.tipoConteúdo === "OPINIAO" && <Tag>Opinião</Tag>}
+          {noticia.tipoConteudo === "OPINIAO" && <Tag>Opinião</Tag>}
           {noticia.demonstracao && <DemoTag />}
         </div>
         <h3 className="mt-2 font-display text-base leading-tight text-primary">

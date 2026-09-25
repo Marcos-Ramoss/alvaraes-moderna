@@ -21,19 +21,44 @@ export default defineConfig({
           enabled: true,
         },
         manifest: {
+          id: "/",
           name: "Alvarães Moderna",
           short_name: "Alvarães",
           description: "Portal de notícias, serviços e comércios de Alvarães",
           theme_color: "#12372a",
           background_color: "#f4f1e9",
           display: "standalone",
+          scope: "/",
           start_url: "/",
+          lang: "pt-BR",
           icons: [
             {
               src: "/logo.png",
               sizes: "192x192 512x512",
               type: "image/png",
               purpose: "any maskable",
+            },
+          ],
+          shortcuts: [
+            {
+              name: "Notícias",
+              url: "/noticias",
+              description: "Ver as últimas notícias de Alvarães",
+            },
+            {
+              name: "Comércio Local",
+              url: "/comercios",
+              description: "Guia de lojas, serviços e restaurantes",
+            },
+            {
+              name: "Agenda de Eventos",
+              url: "/agenda",
+              description: "Eventos e datas comemorativas",
+            },
+            {
+              name: "Painel Admin",
+              url: "/admin",
+              description: "Acessar o painel da redação",
             },
           ],
         },

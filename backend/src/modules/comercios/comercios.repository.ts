@@ -7,6 +7,7 @@ type ListarPublicosFiltros = {
   categoria?: string | undefined;
   patrocinado?: boolean | undefined;
   possuiPagina?: boolean | undefined;
+  ordenacao?: "MAIS_RECENTES" | "NOME";
   pagina: number;
   limite: number;
 };
@@ -89,7 +90,9 @@ export class ComerciosRepository {
       prisma.comercio.findMany({
         where,
         include: { categoria: true },
-        orderBy: [{ patrocinado: "desc" }, { nome: "asc" }],
+        orderBy: filtros.ordenacao === "NOME"
+          ? [{ nome: "asc" }, { id: "asc" }]
+          : [{ criadoEm: "desc" }, { id: "asc" }],
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite,
       }),
@@ -191,6 +194,7 @@ export class ComerciosRepository {
             OR: [
               { nome: { contains: filtros.busca, mode: "insensitive" } },
               { area: { contains: filtros.busca, mode: "insensitive" } },
+              { categoria: { nome: { contains: filtros.busca, mode: "insensitive" } } },
             ],
           }
         : {}),

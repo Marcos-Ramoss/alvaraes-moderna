@@ -9,10 +9,17 @@ import {
 } from "./dto/listar-noticias.query.dto.js";
 import { noticiaIdParamsDto, noticiaSlugParamsDto } from "./dto/noticia-params.dto.js";
 import { NoticiasController } from "./noticias.controller.js";
+import { registrarLeituraRequestDto } from "./dto/registrar-leitura.request.dto.js";
 
 const noticiasController = new NoticiasController();
 
 export const noticiasRoutes = Router();
+
+noticiasRoutes.post(
+  "/noticias/:slug/leituras",
+  validarRequest({ params: noticiaSlugParamsDto, body: registrarLeituraRequestDto }),
+  asyncHandler(noticiasController.registrarLeitura),
+);
 
 noticiasRoutes.get(
   "/noticias/categorias",

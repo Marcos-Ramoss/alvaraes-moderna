@@ -183,18 +183,19 @@ export function AdminComerciosView() {
           }
         : null,
     };
-    if (form.descrição.trim()) payload.descrição = form.descrição.trim();
+    payload.descricao = form.descrição.trim();
     const serviços = form.serviços
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
-    if (serviços.length) payload.serviços = serviços;
+    payload.servicos = serviços;
     const horários = form.horários
       .split("\n")
       .map((item) => item.trim())
       .filter(Boolean);
-    if (horários.length) payload.horários = horários;
-    for (const campo of ["endereço", "telefone", "whatsapp", "siteExterno"] as const) {
+    payload.horarios = horários;
+    payload.endereco = form.endereço.trim();
+    for (const campo of ["telefone", "whatsapp", "siteExterno"] as const) {
       const valor = form[campo].trim();
       if (valor) payload[campo] = valor;
     }
@@ -243,10 +244,10 @@ export function AdminComerciosView() {
       nome: item.nome,
       categoriaSlug: item.categoria.slug,
       area: item.area,
-      descrição: item.descrição ?? "",
-      serviços: (item.serviços ?? []).join(", "),
-      horários: (item.horários ?? []).join("\n"),
-      endereço: item.endereço ?? "",
+      descrição: item.descricao ?? "",
+      serviços: (item.servicos ?? []).join(", "),
+      horários: (item.horarios ?? []).join("\n"),
+      endereço: item.endereco ?? "",
       telefone: item.telefone ?? "",
       whatsapp: item.whatsapp ?? "",
       siteExterno: item.siteExterno ?? "",
@@ -386,7 +387,7 @@ export function AdminComerciosView() {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-admin-foreground truncate">{item.nome}</h3>
+                      <h3 className="break-words font-semibold text-admin-foreground">{item.nome}</h3>
                       <p className="mt-1 text-sm text-admin-muted truncate">{item.categoria.nome}</p>
                     </div>
                   </div>
@@ -577,7 +578,7 @@ export function AdminComerciosView() {
                     >
                       <option value="alimentacao">Alimentação</option>
                       <option value="comercio">Comércio</option>
-                      <option value="serviços">Serviços</option>
+                      <option value="servicos">Serviços</option>
                       <option value="saude">Saúde</option>
                       <option value="transporte">Transporte</option>
                     </select>
@@ -996,7 +997,7 @@ export function AdminComerciosView() {
                     <h3 className="mb-2 text-sm font-semibold text-primary">Informações de Contato</h3>
                     <p className="mb-1 text-sm text-muted-foreground">
                       <strong className="text-foreground">Endereço: </strong>
-                      {comercioParaVisualizar.endereço || comercioParaVisualizar.area || "Não informado"}
+                      {comercioParaVisualizar.endereco || comercioParaVisualizar.area || "Não informado"}
                     </p>
                     {comercioParaVisualizar.telefone && (
                       <p className="mb-1 text-sm text-muted-foreground">
@@ -1022,11 +1023,11 @@ export function AdminComerciosView() {
 
                   <div className="rounded-lg border border-admin-border bg-white p-4">
                     <h3 className="mb-2 text-sm font-semibold text-primary">Horários e Serviços</h3>
-                    {comercioParaVisualizar.horários && comercioParaVisualizar.horários.length > 0 ? (
+                    {comercioParaVisualizar.horarios && comercioParaVisualizar.horarios.length > 0 ? (
                       <div className="mb-2 text-sm text-muted-foreground">
                         <strong className="text-foreground">Horários: </strong>
                         <ul className="mt-1 list-disc pl-4 text-xs space-y-0.5">
-                          {comercioParaVisualizar.horários.map((h, i) => (
+                          {comercioParaVisualizar.horarios.map((h, i) => (
                             <li key={i}>{h}</li>
                           ))}
                         </ul>
@@ -1034,11 +1035,11 @@ export function AdminComerciosView() {
                     ) : (
                       <p className="mb-2 text-sm text-muted-foreground">Horários não informados</p>
                     )}
-                    {comercioParaVisualizar.serviços && comercioParaVisualizar.serviços.length > 0 && (
+                    {comercioParaVisualizar.servicos && comercioParaVisualizar.servicos.length > 0 && (
                       <div>
                         <strong className="text-foreground text-xs">Serviços / Produtos: </strong>
                         <div className="mt-1 flex flex-wrap gap-1">
-                          {comercioParaVisualizar.serviços.map((s, i) => (
+                          {comercioParaVisualizar.servicos.map((s, i) => (
                             <span key={i} className="inline-block rounded border border-border bg-secondary px-2 py-0.5 text-[11px] text-primary">
                               {s}
                             </span>
@@ -1049,11 +1050,11 @@ export function AdminComerciosView() {
                   </div>
                 </div>
 
-                {comercioParaVisualizar.descrição && (
+                {comercioParaVisualizar.descricao && (
                   <div className="rounded-lg border border-admin-border bg-gray-50/50 p-4">
                     <h3 className="mb-1 text-sm font-semibold text-primary">Sobre o estabelecimento</h3>
                     <p className="text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
-                      {comercioParaVisualizar.descrição}
+                      {comercioParaVisualizar.descricao}
                     </p>
                   </div>
                 )}

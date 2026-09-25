@@ -26,7 +26,7 @@ export class BoletimService {
         });
 
     return {
-      mensagem: "Inscricao realizada com sucesso.",
+      mensagem: "Inscrição realizada com sucesso.",
       dados: this.boletimMapper.paraInscrito(inscrito),
     };
   }

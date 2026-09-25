@@ -8,7 +8,7 @@ export function ComercioDetalheView({
 }: {
   business: Awaited<ReturnType<typeof comerciosApi.buscarPorSlug>>;
 }) {
-  const semContato = !b.endereço && !b.telefone && !b.whatsapp && !b.redesSociais?.length && !b.siteExterno;
+  const semContato = !b.endereco && !b.telefone && !b.whatsapp && !b.redesSociais?.length && !b.siteExterno;
   const imagens = (b.imagens ?? [])
     .filter((midia) => midia.tipoMidia === "IMAGEM")
     .sort((a, c) => a.ordem - c.ordem);
@@ -32,7 +32,7 @@ export function ComercioDetalheView({
       </div>
 
       <h1 className="mt-3 font-display text-3xl font-semibold text-primary">{b.nome}</h1>
-      {b.descrição && <p className="mt-3 text-lg text-foreground/80">{b.descrição}</p>}
+      {b.descricao && <p className="mt-3 text-lg text-foreground/80">{b.descricao}</p>}
 
       <div className="mt-6 space-y-3">
         {imagemPrincipal ? <MediaLightbox images={imagens.map((imagem) => ({ id: imagem.id, url: imagem.url, alt: imagem.textoAlternativo ?? b.nome }))} title={b.nome} /> : <PhotoPlaceholder label="Espaço reservado - fotografia do comércio ainda não fornecida" className="aspect-[16/9]" />}
@@ -40,22 +40,22 @@ export function ComercioDetalheView({
 
       {b.video && <div className="mt-6 overflow-hidden rounded-xl border border-border bg-black/5">{videoEmbedUrl ? <iframe src={videoEmbedUrl} title={b.video.titulo ?? `Vídeo de ${b.nome}`} className="aspect-video w-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" /> : <div className="p-4"><p className="text-sm font-medium">Vídeo do comércio</p><a href={b.video.url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-primary underline">Abrir vídeo em uma nova aba</a></div>}</div>}
 
-      {b.serviços && b.serviços.length > 0 && (
+      {b.servicos && b.servicos.length > 0 && (
         <section className="mt-8">
           <h2 className="font-display text-xl font-semibold">Produtos e serviços</h2>
           <ul className="mt-2 list-disc pl-5 text-foreground/80">
-            {b.serviços.map((serviço) => (
+            {b.servicos.map((serviço) => (
               <li key={serviço}>{serviço}</li>
             ))}
           </ul>
         </section>
       )}
 
-      {b.horários && b.horários.length > 0 && (
+      {b.horarios && b.horarios.length > 0 && (
         <section className="mt-8">
           <h2 className="font-display text-xl font-semibold">Horários informados</h2>
           <ul className="mt-2 text-foreground/80">
-            {b.horários.map((horario) => (
+            {b.horarios.map((horario) => (
               <li key={horario}>{horario}</li>
             ))}
           </ul>
@@ -65,7 +65,7 @@ export function ComercioDetalheView({
       <section className="mt-8 rounded-xl bg-secondary p-5">
         <h2 className="font-display text-xl font-semibold">Contato e localização</h2>
         <ul className="mt-2 space-y-1 text-foreground/80">
-          {b.endereço && <li>Endereço: {b.endereço}</li>}
+          {b.endereco && <li>Endereço: {b.endereco}</li>}
           {b.telefone && <li>Telefone: {b.telefone}</li>}
           {b.whatsapp && (
             <li>
