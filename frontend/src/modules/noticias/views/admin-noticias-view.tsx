@@ -1,4 +1,4 @@
-import { Edit, ImageIcon, Link2, Plus, RefreshCcw, Search, Send, Trash2, X } from "lucide-react";
+import { Edit, Eye, ImageIcon, Link2, Plus, RefreshCcw, Search, Send, Trash2, X } from "lucide-react";
 import { FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminPaginacao } from "@/components/admin/admin-list-controls";
@@ -62,6 +62,7 @@ export function AdminNoticiasView() {
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   const [form, setForm] = useState<FormState>(formInicial);
   const [editando, setEditando] = useState<NoticiaAdmin | null>(null);
+  const [noticiaParaVisualizar, setNoticiaParaVisualizar] = useState<NoticiaAdmin | null>(null);
   const [busca, setBusca] = useState("");
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
@@ -468,6 +469,18 @@ export function AdminNoticiasView() {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
+                              setNoticiaParaVisualizar(noticia);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                            Visualizar
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
                               editar(noticia);
                             }}
                           >
@@ -541,6 +554,14 @@ export function AdminNoticiasView() {
                       <td className="px-4 py-3">{formatarDataPtBr(noticia.publicadoEm)}</td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setNoticiaParaVisualizar(noticia)}
+                            className="admin-icon-action"
+                            title="Visualizar notícia"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
                           <button
                             type="button"
                             onClick={() => editar(noticia)}
@@ -962,6 +983,130 @@ export function AdminNoticiasView() {
               </div>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Pré-visualização Fiel */}
+      <Dialog
+        open={Boolean(noticiaParaVisualizar)}
+        onOpenChange={(aberto) => !aberto && setNoticiaParaVisualizar(null)}
+      >
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
+          {noticiaParaVisualizar && (
+            <>
+              <DialogHeader>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-primary">
+                    {noticiaParaVisualizar.categoria.nome}
+                  </span>
+                  <span
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      noticiaParaVisualizar.status === "PUBLICADO"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : noticiaParaVisualizar.status === "RASCUNHO"
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
+                    {noticiaParaVisualizar.status}
+                  </span>
+                  {noticiaParaVisualizar.destaque && (
+                    <span className="inline-block rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-semibold text-amber-900">
+                      ★ Destaque
+                    </span>
+                  )}
+                </div>
+                <DialogTitle className="mt-2 font-display text-2xl sm:text-3xl font-bold leading-tight text-primary">
+                  {noticiaParaVisualizar.titulo}
+                </DialogTitle>
+                <DialogDescription className="text-sm sm:text-base font-medium text-foreground/80">
+                  {noticiaParaVisualizar.resumo}
+                </DialogDescription>
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-muted-foreground font-semibold">
+                  <span>Por {noticiaParaVisualizar.autorNome}</span>
+                  <span>•</span>
+                  <span>{formatarDataPtBr(noticiaParaVisualizar.publicadoEm ?? noticiaParaVisualizar.criadoEm)}</span>
+                </div>
+              </DialogHeader>
+
+              <div className="mt-4 space-y-6">
+                {noticiaParaVisualizar.imagens && noticiaParaVisualizar.imagens.length > 0 ? (
+                  <div className="overflow-hidden rounded-lg">
+                    <MediaLightbox
+                      images={noticiaParaVisualizar.imagens.map((imagem, index) => ({
+                        id: imagem.id || String(index),
+                        url: imagem.url,
+                        alt: imagem.textoAlternativo || noticiaParaVisualizar.titulo || `Imagem ${index + 1}`,
+                      }))}
+                      title={noticiaParaVisualizar.titulo}
+                    />
+                  </div>
+                ) : noticiaParaVisualizar.imagemUrl ? (
+                  <div className="overflow-hidden rounded-lg">
+                    <img
+                      src={noticiaParaVisualizar.imagemUrl}
+                      alt={noticiaParaVisualizar.imagemAlt ?? noticiaParaVisualizar.titulo}
+                      className="aspect-[16/9] w-full object-cover"
+                    />
+                  </div>
+                ) : null}
+
+                <div className="space-y-4 font-display text-base leading-relaxed text-foreground/90">
+                  {noticiaParaVisualizar.corpo && noticiaParaVisualizar.corpo.length > 0 ? (
+                    noticiaParaVisualizar.corpo.map((paragrafo, i) => (
+                      <p key={i}>{paragrafo}</p>
+                    ))
+                  ) : (
+                    <p className="italic text-muted-foreground">Sem conteúdo no corpo da notícia.</p>
+                  )}
+                </div>
+
+                {noticiaParaVisualizar.fontes && noticiaParaVisualizar.fontes.length > 0 && (
+                  <div className="border-t border-admin-border pt-4 text-xs text-muted-foreground">
+                    <span className="font-semibold text-primary">Fontes consultadas: </span>
+                    <span>{noticiaParaVisualizar.fontes.join(", ")}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex flex-col-reverse gap-2 border-t border-admin-border pt-4 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setNoticiaParaVisualizar(null)}
+                >
+                  Fechar
+                </Button>
+                {noticiaParaVisualizar.status === "RASCUNHO" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => {
+                      const item = noticiaParaVisualizar;
+                      setNoticiaParaVisualizar(null);
+                      publicar(item);
+                    }}
+                  >
+                    <Send className="h-4 w-4" />
+                    Publicar agora
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const item = noticiaParaVisualizar;
+                    setNoticiaParaVisualizar(null);
+                    editar(item);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar notícia
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 

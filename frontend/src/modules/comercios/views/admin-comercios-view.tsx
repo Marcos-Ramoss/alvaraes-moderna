@@ -1,5 +1,6 @@
 import {
   Edit,
+  Eye,
   ImageIcon,
   Link2,
   Plus,
@@ -78,6 +79,7 @@ export function AdminComerciosView() {
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   const [form, setForm] = useState<FormState>(formInicial);
   const [editando, setEditando] = useState<ComercioAdmin | null>(null);
+  const [comercioParaVisualizar, setComercioParaVisualizar] = useState<ComercioAdmin | null>(null);
   const [busca, setBusca] = useState("");
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
@@ -394,7 +396,18 @@ export function AdminComerciosView() {
                       <span className="font-semibold">{item.status}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setComercioParaVisualizar(item);
+                      }}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-admin-border bg-admin-surface px-3 text-sm font-semibold text-admin-foreground hover:bg-admin-background flex-1"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Visualizar
+                    </button>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -465,6 +478,14 @@ export function AdminComerciosView() {
                     <td className="px-4 py-3">{item.status}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setComercioParaVisualizar(item)}
+                          className="admin-icon-action"
+                          title="Visualizar comércio"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => editar(item)}
@@ -917,6 +938,168 @@ export function AdminComerciosView() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Pré-visualização Fiel */}
+      <Dialog
+        open={Boolean(comercioParaVisualizar)}
+        onOpenChange={(aberto) => !aberto && setComercioParaVisualizar(null)}
+      >
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
+          {comercioParaVisualizar && (
+            <>
+              <DialogHeader>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-primary">
+                    {comercioParaVisualizar.categoria.nome}
+                  </span>
+                  <span
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      comercioParaVisualizar.status === "PUBLICADO"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : comercioParaVisualizar.status === "RASCUNHO"
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
+                    {comercioParaVisualizar.status}
+                  </span>
+                  {comercioParaVisualizar.patrocinado && (
+                    <span className="inline-block rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-semibold text-amber-900">
+                      ★ Patrocinado
+                    </span>
+                  )}
+                </div>
+                <DialogTitle className="mt-2 font-display text-2xl sm:text-3xl font-bold leading-tight text-primary">
+                  {comercioParaVisualizar.nome}
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium text-foreground/80">
+                  {comercioParaVisualizar.area}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="mt-4 space-y-6">
+                {comercioParaVisualizar.imagens && comercioParaVisualizar.imagens.length > 0 && (
+                  <div className="overflow-hidden rounded-lg">
+                    <MediaLightbox
+                      images={comercioParaVisualizar.imagens.map((imagem, index) => ({
+                        id: imagem.id || String(index),
+                        url: imagem.url,
+                        alt: imagem.textoAlternativo || comercioParaVisualizar.nome || `Imagem ${index + 1}`,
+                      }))}
+                      title={comercioParaVisualizar.nome}
+                    />
+                  </div>
+                )}
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-lg border border-admin-border bg-white p-4">
+                    <h3 className="mb-2 text-sm font-semibold text-primary">Informações de Contato</h3>
+                    <p className="mb-1 text-sm text-muted-foreground">
+                      <strong className="text-foreground">Endereço: </strong>
+                      {comercioParaVisualizar.endereço || comercioParaVisualizar.area || "Não informado"}
+                    </p>
+                    {comercioParaVisualizar.telefone && (
+                      <p className="mb-1 text-sm text-muted-foreground">
+                        <strong className="text-foreground">Telefone: </strong>
+                        {comercioParaVisualizar.telefone}
+                      </p>
+                    )}
+                    {comercioParaVisualizar.whatsapp && (
+                      <p className="mb-1 text-sm text-muted-foreground">
+                        <strong className="text-foreground">WhatsApp: </strong>
+                        <span className="text-emerald-700 font-semibold">{comercioParaVisualizar.whatsapp}</span>
+                      </p>
+                    )}
+                    {comercioParaVisualizar.siteExterno && (
+                      <p className="mb-1 text-sm text-muted-foreground">
+                        <strong className="text-foreground">Site / Link: </strong>
+                        <a href={comercioParaVisualizar.siteExterno} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                          {comercioParaVisualizar.siteExterno}
+                        </a>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="rounded-lg border border-admin-border bg-white p-4">
+                    <h3 className="mb-2 text-sm font-semibold text-primary">Horários e Serviços</h3>
+                    {comercioParaVisualizar.horários && comercioParaVisualizar.horários.length > 0 ? (
+                      <div className="mb-2 text-sm text-muted-foreground">
+                        <strong className="text-foreground">Horários: </strong>
+                        <ul className="mt-1 list-disc pl-4 text-xs space-y-0.5">
+                          {comercioParaVisualizar.horários.map((h, i) => (
+                            <li key={i}>{h}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p className="mb-2 text-sm text-muted-foreground">Horários não informados</p>
+                    )}
+                    {comercioParaVisualizar.serviços && comercioParaVisualizar.serviços.length > 0 && (
+                      <div>
+                        <strong className="text-foreground text-xs">Serviços / Produtos: </strong>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {comercioParaVisualizar.serviços.map((s, i) => (
+                            <span key={i} className="inline-block rounded border border-border bg-secondary px-2 py-0.5 text-[11px] text-primary">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {comercioParaVisualizar.descrição && (
+                  <div className="rounded-lg border border-admin-border bg-gray-50/50 p-4">
+                    <h3 className="mb-1 text-sm font-semibold text-primary">Sobre o estabelecimento</h3>
+                    <p className="text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
+                      {comercioParaVisualizar.descrição}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex flex-col-reverse gap-2 border-t border-admin-border pt-4 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setComercioParaVisualizar(null)}
+                >
+                  Fechar
+                </Button>
+                {comercioParaVisualizar.status === "RASCUNHO" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => {
+                      const item = comercioParaVisualizar;
+                      setComercioParaVisualizar(null);
+                      publicar(item);
+                    }}
+                  >
+                    <Send className="h-4 w-4" />
+                    Publicar agora
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const item = comercioParaVisualizar;
+                    setComercioParaVisualizar(null);
+                    editar(item);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar comércio
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog
         open={Boolean(comercioParaExcluir)}
         onOpenChange={(aberto) => !aberto && setComercioParaExcluir(null)}

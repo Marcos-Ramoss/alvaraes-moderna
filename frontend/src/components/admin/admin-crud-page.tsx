@@ -1,4 +1,4 @@
-import { Edit, ImageIcon, Plus, RefreshCcw, Search, Send, Trash2, X } from "lucide-react";
+import { Edit, Eye, ImageIcon, Plus, RefreshCcw, Search, Send, Trash2, X } from "lucide-react";
 import { FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { formatarDataPtBr, formatarErroApi } from "../../lib/admin-api";
 import {
@@ -121,6 +121,7 @@ export function AdminCrudPage<T extends { id: string }, P>({
   const [carregandoLista, setCarregandoLista] = useState(true);
   const [formularioAberto, setFormularioAberto] = useState(false);
   const [etapaAtual, setEtapaAtual] = useState("");
+  const [itemParaVisualizar, setItemParaVisualizar] = useState<T | null>(null);
   const [itemParaExcluir, setItemParaExcluir] = useState<T | null>(null);
   const [excluindo, setExcluindo] = useState(false);
   const [pagina, setPagina] = useState(1);
@@ -427,7 +428,19 @@ export function AdminCrudPage<T extends { id: string }, P>({
                     </dl>
                   </div>
                 </div>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setItemParaVisualizar(item);
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                    Visualizar
+                  </Button>
                   <Button
                     type="button"
                     variant="outline"
@@ -510,6 +523,14 @@ export function AdminCrudPage<T extends { id: string }, P>({
                     ))}
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setItemParaVisualizar(item)}
+                          className="admin-icon-action"
+                          title={`Visualizar ${etiqueta.toLowerCase()}`}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => editar(item)}
@@ -650,6 +671,84 @@ export function AdminCrudPage<T extends { id: string }, P>({
               </div>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Pré-visualização Fiel */}
+      <Dialog
+        open={Boolean(itemParaVisualizar)}
+        onOpenChange={(aberto) => !aberto && setItemParaVisualizar(null)}
+      >
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
+          {itemParaVisualizar && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-primary">
+                    {etiqueta}
+                  </span>
+                </div>
+                <DialogTitle className="mt-2 font-display text-2xl font-bold leading-tight text-primary">
+                  {obterTitulo(itemParaVisualizar)}
+                </DialogTitle>
+                <DialogDescription>
+                  Pré-visualização do conteúdo e detalhes do registro.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="mt-4">
+                {renderPreview ? (
+                  renderPreview(paraFormulario(itemParaVisualizar))
+                ) : (
+                  <div className="space-y-4 rounded-lg border border-admin-border bg-gray-50/50 p-4">
+                    <dl className="grid gap-3 sm:grid-cols-2 text-sm">
+                      {colunas.map((coluna) => (
+                        <div key={coluna.label}>
+                          <dt className="admin-label-muted">{coluna.label}</dt>
+                          <dd className="mt-1 font-medium text-admin-foreground">{coluna.valor(itemParaVisualizar)}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex flex-col-reverse gap-2 border-t border-admin-border pt-4 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setItemParaVisualizar(null)}
+                >
+                  Fechar
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const item = itemParaVisualizar;
+                    setItemParaVisualizar(null);
+                    publicarItem(item);
+                  }}
+                >
+                  <Send className="h-4 w-4" />
+                  Publicar
+                </Button>
+                <Button
+                  type="button"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const item = itemParaVisualizar;
+                    setItemParaVisualizar(null);
+                    editar(item);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar {etiqueta.toLowerCase()}
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
