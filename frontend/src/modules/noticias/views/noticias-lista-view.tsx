@@ -99,7 +99,6 @@ export function NoticiasListaView({
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-2xl text-primary">Destaques</h2>
-            <span className="text-xs text-muted-foreground">Ver todas as noticias -&gt;</span>
           </div>
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_285px]">
             <Carousel className="relative overflow-hidden rounded-lg">
