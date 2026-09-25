@@ -5,6 +5,7 @@ export type NoticiaResumoResponseDto = {
   slug: string;
   titulo: string;
   resumo: string;
+  totalLeituras: number;
   categoria: {
     id: string;
     nome: string;

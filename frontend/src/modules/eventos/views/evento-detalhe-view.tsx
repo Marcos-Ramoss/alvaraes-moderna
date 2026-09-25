@@ -32,7 +32,7 @@ export function EventoDetalheView({
         Organizado por {evento.organizador}
       </p>
 
-      {evento.descrição && <p className="mt-4 text-lg text-foreground/80">{evento.descrição}</p>}
+      {evento.descricao && <p className="mt-4 text-lg text-foreground/80">{evento.descricao}</p>}
 
       <div className="mt-6 space-y-3">
         {imagemPrincipal ? (
@@ -110,14 +110,14 @@ export function EventoDetalheView({
             <div>
               <dt className="inline font-semibold">Fonte/Referência: </dt>
               <dd className="inline break-words">
-                <a
+                {/^https?:\/\//i.test(evento.fonte) ? <a
                   href={evento.fonte}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary underline"
                 >
                   {evento.fonte}
-                </a>
+                </a> : evento.fonte}
               </dd>
             </div>
           )}

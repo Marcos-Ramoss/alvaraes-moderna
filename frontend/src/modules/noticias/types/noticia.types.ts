@@ -22,7 +22,7 @@ export type NoticiaPublica = {
     slug: string;
   };
   autorNome: string;
-  tipoConteúdo: "NOTICIA" | "OPINIAO" | "PATROCINADO";
+  tipoConteudo: "NOTICIA" | "OPINIAO" | "PATROCINADO";
   status: "RASCUNHO" | "PUBLICADO" | "ARQUIVADO";
   destaque: boolean;
   demonstracao: boolean;
@@ -70,7 +70,7 @@ export type NoticiaAdmin = {
     slug: string;
   };
   autorNome: string;
-  tipoConteúdo: "NOTICIA" | "OPINIAO" | "PATROCINADO";
+  tipoConteudo: "NOTICIA" | "OPINIAO" | "PATROCINADO";
   status: "RASCUNHO" | "PUBLICADO" | "ARQUIVADO";
   destaque: boolean;
   demonstracao: boolean;
@@ -110,7 +110,7 @@ export type SalvarNoticiaPayload = {
   autorNome: string;
   categoriaSlug: string;
   status: "RASCUNHO" | "PUBLICADO" | "ARQUIVADO";
-  tipoConteúdo: "NOTICIA" | "OPINIAO" | "PATROCINADO";
+  tipoConteudo: "NOTICIA" | "OPINIAO" | "PATROCINADO";
   destaque: boolean;
   demonstracao: boolean;
   fontes?: string[];

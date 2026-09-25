@@ -22,7 +22,7 @@ export type OportunidadePublica = {
   prazo: string;
   requisitos?: string;
   custo?: string;
-  linkInscrição?: string;
+  linkInscricao?: string;
   imagens?: MidiaCurso[];
   video?: MidiaCurso;
   demonstracao: boolean;
@@ -34,6 +34,7 @@ export type OportunidadePublica = {
 
 export type CursoAdmin = {
   id: string;
+  categoria?: { id: string; nome: string; slug: string };
   titulo: string;
   organizador: string;
   modalidade: "PRESENCIAL" | "ONLINE" | "HIBRIDO";
@@ -41,7 +42,7 @@ export type CursoAdmin = {
   prazo: string;
   requisitos?: string;
   custo?: string;
-  linkInscrição?: string;
+  linkInscricao?: string;
   imagens?: MidiaCurso[];
   video?: MidiaCurso;
   demonstracao: boolean;
@@ -59,7 +60,7 @@ export type SalvarCursoPayload = {
   prazo: string;
   requisitos?: string;
   custo?: string;
-  linkInscrição?: string;
+  linkInscricao?: string;
   categoriaSlug?: string;
   imagens?: ImagemCursoPayload[];
   video?: VídeoCursoPayload | null;

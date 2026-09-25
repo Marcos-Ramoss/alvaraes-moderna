@@ -854,7 +854,11 @@ export const openApiDocument = {
         tags: ["Noticias"],
         summary: "Lista noticias publicadas",
         operationId: "listarNoticiasPublicadas",
-        parameters: parametrosListagem,
+        parameters: [...parametrosListagem, {
+          name: "ordenacao", in: "query",
+          schema: { type: "string", enum: ["MAIS_RECENTES", "MAIS_ANTIGAS", "MAIS_LIDAS"], default: "MAIS_RECENTES" },
+          description: "Mais lidas considera somente notícias publicadas com leituras registradas, em ordem decrescente do total acumulado.",
+        }],
         responses: {
           "200": {
             description: "Noticias publicadas",
@@ -864,6 +868,26 @@ export const openApiDocument = {
               },
             },
           },
+        },
+      },
+    },
+    "/api/noticias/{slug}/leituras": {
+      post: {
+        tags: ["Noticias"],
+        summary: "Registra uma leitura da notícia publicada",
+        description: "No máximo uma leitura por notícia, navegador e dia em America/Manaus. O portal envia após cinco segundos visíveis. Não representa pessoas únicas.",
+        operationId: "registrarLeituraNoticia",
+        parameters: [{ name: "slug", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: {
+          type: "object", required: ["clienteId"],
+          properties: { clienteId: { type: "string", minLength: 16, maxLength: 128, pattern: "^[a-zA-Z0-9_-]+$", example: "550e8400-e29b-41d4-a716-446655440000" } },
+        } } } },
+        responses: {
+          "200": { description: "Leitura registrada ou já contabilizada neste dia", content: { "application/json": { schema: {
+            type: "object", properties: { dados: { type: "object", properties: { registrada: { type: "boolean" } } } },
+          } } } },
+          "400": { description: "Identificador inválido" },
+          "404": { description: "Notícia inexistente ou não publicada" },
         },
       },
     },

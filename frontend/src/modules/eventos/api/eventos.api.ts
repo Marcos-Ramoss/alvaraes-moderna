@@ -15,10 +15,10 @@ async function request<T>(path: string): Promise<T> {
 }
 
 export const eventosApi = {
-  async listar(filtros?: { busca?: string; limite?: number }) {
+  async listar(filtros?: { busca?: string; limite?: number; situacao?: "FUTURO" | "ENCERRADO" | "TODOS" }) {
     const query = new URLSearchParams();
     query.set("limite", (filtros?.limite ?? 1000).toString());
-    query.set("situacao", "TODOS");
+    query.set("situacao", filtros?.situacao ?? "TODOS");
     if (filtros?.busca) query.set("busca", filtros.busca);
 
     const resposta = await request<{ dados: EventoPublico[] }>(

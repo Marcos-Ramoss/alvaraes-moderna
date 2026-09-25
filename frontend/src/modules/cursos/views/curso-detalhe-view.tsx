@@ -105,10 +105,10 @@ export function CursoDetalheView({
           )}
         </dl>
         
-        {curso.linkInscrição && !curso.encerrada && (
+        {curso.linkInscricao && !curso.encerrada && (
           <div className="mt-6 border-t border-border pt-6 text-center">
             <a
-              href={curso.linkInscrição}
+              href={curso.linkInscricao}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90"

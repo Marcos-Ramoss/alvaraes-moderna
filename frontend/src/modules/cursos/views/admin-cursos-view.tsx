@@ -156,7 +156,7 @@ export function AdminCursosView() {
           opcoes: [
             { valor: "cursos", label: "Cursos" },
             { valor: "vagas", label: "Vagas" },
-            { valor: "inscrições", label: "Inscrições" },
+            { valor: "inscricoes", label: "Inscrições" },
           ],
         },
         {
@@ -185,8 +185,8 @@ export function AdminCursosView() {
         prazo: paraDatetimeLocal(item.prazo),
         requisitos: item.requisitos ?? "",
         custo: item.custo ?? "",
-        linkInscrição: item.linkInscrição ?? "",
-        categoriaSlug: "cursos",
+        linkInscrição: item.linkInscricao ?? "",
+        categoriaSlug: item.categoria?.slug ?? "cursos",
         imagens: (item.imagens ?? [])
           .filter((midia) => midia.tipoMidia === "IMAGEM")
           .sort((a, b) => a.ordem - b.ordem)
@@ -225,7 +225,7 @@ export function AdminCursosView() {
         if (local) payload.local = local;
         if (requisitos) payload.requisitos = requisitos;
         if (custo) payload.custo = custo;
-        if (linkInscrição) payload.linkInscrição = linkInscrição;
+        if (linkInscrição) payload.linkInscricao = linkInscrição;
         if (imagens.length) payload.imagens = imagens;
         payload.video = videoUrl
           ? {

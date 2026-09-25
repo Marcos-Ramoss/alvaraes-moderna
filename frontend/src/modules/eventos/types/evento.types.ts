@@ -28,7 +28,7 @@ export type EventoPublico = {
   local: string;
   organizador: string;
   entrada: string;
-  descrição: string;
+  descricao: string;
   contato?: string;
   fonte?: string;
   imagens?: MidiaEvento[];
@@ -49,7 +49,7 @@ export type EventoAdmin = {
   local: string;
   organizador: string;
   entrada: string;
-  descrição: string;
+  descricao: string;
   contato?: string;
   fonte?: string;
   imagens?: MidiaEvento[];
@@ -68,7 +68,7 @@ export type SalvarEventoPayload = {
   horario?: string;
   local: string;
   organizador: string;
-  descrição: string;
+  descricao: string;
   entrada: string;
   contato?: string;
   fonte?: string;

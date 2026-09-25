@@ -18,17 +18,29 @@ import { GlobalSearch } from "./global-search";
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { canInstall, promptInstall, isIos, isInstalled, isSupported } = usePwaInstall();
+  const { canInstall, promptInstall, isIos, isInstalled, isStandalone } = usePwaInstall();
 
-  const handleInstallClick = () => {
-    // 1. Se o prompt está disponível, iniciamos a instalação normalmente.
+  const handleInstallClick = async () => {
     if (canInstall) {
-      promptInstall();
+      try {
+        await promptInstall();
+      } catch {
+        toast.error("Não foi possível abrir a instalação.", {
+          description: "Confira no menu do navegador se há uma opção para instalar o aplicativo.",
+          position: "top-center",
+        });
+      }
       return;
     } 
     
-    // 2. Se já sabemos que está instalado (via PWA standalone, localStorage, ou porque o navegador suporta o prompt mas não o disparou)
-    if (isInstalled || (isSupported && !isIos)) {
+    if (isStandalone) {
+      toast.info("Você já está usando o aplicativo instalado.", {
+        position: "top-center",
+      });
+      return;
+    }
+
+    if (isInstalled) {
       toast.info("Este aplicativo já está instalado neste dispositivo.", {
         description: "Procure nos seus apps ou na tela inicial.",
         position: "top-center",
@@ -36,18 +48,17 @@ export function SiteHeader() {
       return;
     } 
     
-    // 3. Se for iOS (que não dispara o prompt, mas tem o botão de compartilhar)
     if (isIos) {
-      toast("Para instalar no iPhone", {
-        description: "Toque em Compartilhar (ícone com a seta pra cima) e depois em 'Adicionar à Tela de Início'.",
+      toast("Instalar no iPhone ou iPad", {
+        description: "No Safari, abra Compartilhar e procure 'Adicionar à Tela de Início'.",
         position: "top-center",
         duration: 8000,
       });
       return;
     } 
     
-    // 4. Se chegou aqui, o dispositivo realmente não é compatível (ex: Firefox no PC/Android que não suporta a API, ou modo incógnito)
-    toast.info("Este aplicativo não é compatível com este dispositivo.", {
+    toast.info("A instalação não está disponível neste momento.", {
+      description: "Confira no menu do navegador se há uma opção para instalar ou adicionar à tela inicial.",
       position: "top-center",
     });
   };
@@ -147,7 +158,7 @@ export function SiteHeader() {
             aria-label="Buscar"
             onClick={() => setSearchOpen(true)}
             className="
-              flex size-9 items-center justify-center
+              flex size-11 shrink-0 items-center justify-center
               rounded-full
               text-foreground/60
               transition-colors
@@ -163,7 +174,7 @@ export function SiteHeader() {
             type="button"
             onClick={handleInstallClick}
             className="
-              flex items-center gap-2
+              flex min-h-11 items-center gap-2
               rounded-full
               border border-primary/30
               bg-primary/5
@@ -177,14 +188,14 @@ export function SiteHeader() {
             "
           >
             <Download className="size-4" />
-            Instalar App
+            {isInstalled ? "App instalado" : "Instalar app"}
           </button>
 
           {/* ANUNCIE */}
           <Link
             to="/anuncie"
             className="
-              flex items-center gap-2
+              flex min-h-11 items-center gap-2
               rounded-full
               bg-primary
               px-5 py-2.5
@@ -234,7 +245,7 @@ export function SiteHeader() {
           id="menu-mobile"
           aria-label="Navegação principal (celular)"
           className="
-            border-t border-border
+            max-h-[calc(100dvh-76px)] overflow-y-auto border-t border-border
             bg-background
             lg:hidden
           "
@@ -337,12 +348,13 @@ export function SiteHeader() {
             {/* ANUNCIE MOBILE */}
             <li className="py-4 flex flex-col gap-3">
               <button
+                type="button"
                 onClick={() => {
                   setOpen(false);
                   handleInstallClick();
                 }}
                 className="
-                  flex items-center justify-center gap-2
+                  flex min-h-12 items-center justify-center gap-2
                   rounded-full
                   border-2 border-primary
                   bg-transparent
@@ -354,13 +366,13 @@ export function SiteHeader() {
                 "
               >
                 <Download className="size-5" />
-                Instalar App
+                {isInstalled ? "App instalado" : "Instalar app"}
               </button>
               <Link
                 to="/anuncie"
                 onClick={() => setOpen(false)}
                 className="
-                  flex items-center justify-center gap-2
+                  flex min-h-12 items-center justify-center gap-2
                   rounded-full
                   bg-primary
                   px-4 py-3

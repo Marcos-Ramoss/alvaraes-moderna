@@ -15,7 +15,14 @@ async function request<T>(path: string): Promise<T> {
 }
 
 export const noticiasApi = {
-  async listar(filtros?: { busca?: string; limite?: number; pagina?: number; categoria?: string; destaque?: boolean }) {
+  async listar(filtros?: {
+    busca?: string;
+    limite?: number;
+    pagina?: number;
+    categoria?: string;
+    destaque?: boolean;
+    ordenacao?: "MAIS_RECENTES" | "MAIS_ANTIGAS" | "MAIS_LIDAS";
+  }) {
     const query = new URLSearchParams();
     query.set("limite", (filtros?.limite ?? 6).toString());
     query.set("pagina", (filtros?.pagina ?? 1).toString());
@@ -25,6 +32,9 @@ export const noticiasApi = {
     }
     if (filtros?.destaque !== undefined) {
       query.set("destaque", filtros.destaque.toString());
+    }
+    if (filtros?.ordenacao) {
+      query.set("ordenacao", filtros.ordenacao);
     }
     
     const resposta = await request<{ dados: NoticiaPublica[]; total: number }>(`/noticias?${query.toString()}`);
@@ -39,6 +49,22 @@ export const noticiasApi = {
   async buscarPorSlug(slug: string) {
     const resposta = await request<{ dados: NoticiaPublica }>(`/noticias/${slug}`);
     return resposta.dados;
+  },
+
+  async registrarLeitura(slug: string, clienteId: string) {
+    const resposta = await fetch(`${API_URL}/noticias/${slug}/leituras`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clienteId }),
+    });
+    const contentType = resposta.headers.get("content-type");
+    const data = contentType?.includes("application/json") ? await resposta.json() : null;
+
+    if (!resposta.ok) {
+      throw new Error(data?.mensagem ?? "Não foi possível registrar a leitura.");
+    }
+
+    return data as { dados: { registrada: boolean } };
   },
 };
 

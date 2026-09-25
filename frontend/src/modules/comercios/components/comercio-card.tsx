@@ -33,10 +33,10 @@ export function ComercioMiniCard({ comercio }: { comercio: ComercioPublico }) {
 
 export function ComercioCard({ comercio }: { comercio: ComercioPublico }) {
   const imagemPrincipal = obterImagemPrincipal(comercio);
-  const contatoParaLink = (comercio.whatsapp || comercio.telefone || "").replace(/\D/g, "");
+  const contatoParaLink = (comercio.whatsapp || "").replace(/\D/g, "");
   const linkWhatsapp =
     contatoParaLink.length >= 8
-      ? `https://wa.me/${contatoParaLink.length <= 11 ? `55${contatoParaLink}` : contatoParaLink}?text=${encodeURIComponent(`Olá! Vi o anúncio do ${comercio.nome} no portal Alvarães Conecta.`)}`
+      ? `https://wa.me/${contatoParaLink.length <= 11 ? `55${contatoParaLink}` : contatoParaLink}?text=${encodeURIComponent(`Olá! Vi o anúncio do ${comercio.nome} no portal Alvarães Moderna.`)}`
       : undefined;
 
   return (
@@ -57,11 +57,11 @@ export function ComercioCard({ comercio }: { comercio: ComercioPublico }) {
         <h3 className="mt-3 min-h-11 font-display text-lg leading-tight text-primary">
           <Link to="/comercios/$slug" params={{ slug: comercio.slug }}>{comercio.nome}</Link>
         </h3>
-        <p className="mt-2 line-clamp-2 min-h-8 text-xs leading-relaxed text-foreground/70">{comercio.descrição ?? comercio.area}</p>
+        {comercio.descricao && <p className="mt-2 line-clamp-2 min-h-8 text-xs leading-relaxed text-foreground/70">{comercio.descricao}</p>}
         <div className="mt-4 space-y-1.5 text-[11px] text-muted-foreground">
           <p className="flex items-center gap-1.5">
             <MapPin className="size-3.5 shrink-0 text-primary/70" />
-            <span className="truncate">{comercio.endereço ?? comercio.area}</span>
+            <span className="break-words">{comercio.endereco ?? comercio.area}</span>
           </p>
           {comercio.telefone && (
             <p className="flex items-center gap-1.5">
@@ -69,10 +69,10 @@ export function ComercioCard({ comercio }: { comercio: ComercioPublico }) {
               <span>{comercio.telefone}</span>
             </p>
           )}
-          {comercio.horários?.[0] && (
+          {comercio.horarios?.[0] && (
             <p className="flex items-center gap-1.5">
               <Clock className="size-3.5 shrink-0 text-primary/70" />
-              <span>{comercio.horários[0]}</span>
+              <span>{comercio.horarios[0]}</span>
             </p>
           )}
         </div>
@@ -82,7 +82,7 @@ export function ComercioCard({ comercio }: { comercio: ComercioPublico }) {
               href={linkWhatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 active:bg-emerald-800"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 active:bg-emerald-800"
             >
               <MessageCircle className="size-3.5" />
               <span>WhatsApp</span>
@@ -92,21 +92,20 @@ export function ComercioCard({ comercio }: { comercio: ComercioPublico }) {
             <Link
               to="/comercios/$slug"
               params={{ slug: comercio.slug }}
-              className="inline-flex min-h-[36px] items-center rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-secondary/80"
+              className="inline-flex min-h-11 items-center rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-secondary/80"
             >
               Ver detalhes →
             </Link>
-          ) : (
-            comercio.telefone && !linkWhatsapp && (
+          ) : null}
+          {comercio.telefone && !linkWhatsapp && (
               <a
                 href={`tel:${comercio.telefone.replace(/\D/g, "")}`}
-                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-secondary/80"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-secondary/80"
               >
                 <Phone className="size-3.5" />
                 <span>Ligar</span>
               </a>
-            )
-          )}
+            )}
         </div>
       </div>
     </article>

@@ -15,6 +15,10 @@ import {
   NoticiasRepository,
 } from "./noticias.repository.js";
 import { NoticiasRules } from "./noticias.rules.js";
+import { LeiturasRules } from "./leituras.rules.js";
+import { env } from "../../config/env.js";
+import type { RegistrarLeituraRequestDto } from "./dto/registrar-leitura.request.dto.js";
+import type { RegistrarLeituraResponseDto } from "./dto/registrar-leitura.response.dto.js";
 
 export class NoticiasService {
   constructor(
@@ -31,6 +35,7 @@ export class NoticiasService {
     const { itens, total } = await this.noticiasRepository.listarPublicas({
       pagina: filtros.pagina,
       limite: filtros.limite,
+      ordenacao: filtros.ordenacao,
       ...(filtros.busca ? { busca: filtros.busca } : {}),
       ...(filtros.categoria ? { categoria: filtros.categoria } : {}),
       ...(filtros.destaque !== undefined ? { destaque: filtros.destaque } : {}),
@@ -39,6 +44,13 @@ export class NoticiasService {
       itens: itens.map((noticia) => this.noticiasMapper.paraDetalhe(noticia)),
       total,
     };
+  }
+
+  async registrarLeitura(slug: string, dto: RegistrarLeituraRequestDto): Promise<RegistrarLeituraResponseDto> {
+    const regras = new LeiturasRules();
+    return this.noticiasRepository.registrarLeitura(
+      slug, regras.identificarCliente(dto.clienteId, env.JWT_SECRET), regras.obterDiaLocal(),
+    );
   }
 
   async listarAdministracao(filtros: ListarNoticiasAdminQueryDto) {

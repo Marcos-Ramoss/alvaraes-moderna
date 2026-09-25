@@ -23,8 +23,8 @@ export class BoletimMapper {
     inscricoesAbertas: Oportunidade[];
   }): PreviaBoletimResponseDto {
     return {
-      titulo: "Boa semana, Alvaraes!",
-      saudacao: "Aqui vai o resumo do que aconteceu na cidade e o que vem por ai.",
+      titulo: "Boa semana, Alvarães!",
+      saudacao: "Aqui vai o resumo do que aconteceu na cidade e o que vem por aí.",
       periodo: {
         inicio: params.periodo.inicio.toISOString(),
         fim: params.periodo.fim.toISOString(),

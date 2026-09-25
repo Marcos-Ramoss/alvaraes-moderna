@@ -125,13 +125,26 @@ model Noticia {
   criadoEm      DateTime            @default(now()) @map("criado_em")
   alteradoEm    DateTime            @updatedAt @map("alterado_em")
   autorId       String?             @map("autor_id")
+  totalLeituras  Int                 @default(0) @map("total_leituras")
 
   categoria Categoria @relation("NoticiasCategoria", fields: [categoriaId], references: [id])
   autor     Usuario?  @relation("NoticiasCriadas", fields: [autorId], references: [id])
+  leituras  LeituraNoticia[]
 
   @@index([status, publicadoEm])
+  @@index([status, totalLeituras, publicadoEm])
   @@index([categoriaId])
   @@map("noticias")
+}
+
+model LeituraNoticia {
+  noticiaId   String   @map("noticia_id")
+  clienteHash String   @map("cliente_hash") @db.Char(64)
+  dia         DateTime @db.Date
+  noticia     Noticia  @relation(fields: [noticiaId], references: [id], onDelete: Cascade)
+
+  @@id([noticiaId, clienteHash, dia])
+  @@map("leituras_noticias")
 }
 
 model Comercio {

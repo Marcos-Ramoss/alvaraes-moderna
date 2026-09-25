@@ -1,11 +1,13 @@
 import type { Midia, Prisma, StatusPublicacao } from "@prisma/client";
 import { TipoCategoria, TipoVinculoMidia } from "@prisma/client";
 import { prisma } from "../../database/prisma.js";
+import { AppError } from "../../common/errors/app-error.js";
 
 type ListarPublicasFiltros = {
   busca?: string | undefined;
   categoria?: string | undefined;
   destaque?: boolean | undefined;
+  ordenacao?: "MAIS_RECENTES" | "MAIS_ANTIGAS" | "MAIS_LIDAS";
   pagina: number;
   limite: number;
 };
@@ -88,12 +90,17 @@ export class NoticiasRepository {
       status: "PUBLICADO",
     });
 
+    if (filtros.ordenacao === "MAIS_LIDAS") where.totalLeituras = { gt: 0 };
+    const ordem: Prisma.NoticiaOrderByWithRelationInput[] = filtros.ordenacao === "MAIS_LIDAS"
+      ? [{ totalLeituras: "desc" }, { publicadoEm: "desc" }, { id: "asc" }]
+      : [{ publicadoEm: filtros.ordenacao === "MAIS_ANTIGAS" ? "asc" : "desc" }, { id: "asc" }];
+
     const [total, noticias] = await prisma.$transaction([
       prisma.noticia.count({ where }),
       prisma.noticia.findMany({
         where,
         include: { categoria: true },
-        orderBy: [{ destaque: "desc" }, { publicadoEm: "desc" }, { criadoEm: "desc" }],
+        orderBy: ordem,
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite,
       })
@@ -101,6 +108,27 @@ export class NoticiasRepository {
 
     const itens = await this.anexarMidias(noticias);
     return { itens, total };
+  }
+
+  async registrarLeitura(slug: string, clienteHash: string, dia: Date) {
+    return prisma.$transaction(async (tx) => {
+      const noticia = await tx.noticia.findFirst({ where: { slug, status: "PUBLICADO" }, select: { id: true } });
+      if (!noticia) throw new AppError("Notícia não encontrada.", 404);
+
+      // A chave única e o incremento na mesma transação evitam contar requisições concorrentes duas vezes.
+      const leitura = await tx.leituraNoticia.createMany({
+        data: [{ noticiaId: noticia.id, clienteHash, dia }], skipDuplicates: true,
+      });
+      if (leitura.count === 0) return { registrada: false };
+      // A leitura não é uma edição editorial: mantenha alterado_em intacto.
+      const atualizada = await tx.$executeRaw`
+        UPDATE "noticias" SET "total_leituras" = "total_leituras" + 1
+        WHERE "id" = ${noticia.id} AND "status" = 'PUBLICADO'
+      `;
+      if (atualizada === 0) throw new AppError("Notícia não encontrada.", 404);
+      await tx.leituraNoticia.deleteMany({ where: { noticiaId: noticia.id, dia: { lt: dia } } });
+      return { registrada: true };
+    });
   }
 
   async listarAdmin(filtros: ListarAdminFiltros) {

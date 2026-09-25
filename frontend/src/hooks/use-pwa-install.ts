@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -10,73 +10,73 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function usePwaInstall() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const deferredPrompt = useRef<BeforeInstallPromptEvent | null>(null);
+  const [canInstall, setCanInstall] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [isSupported, setIsSupported] = useState(true);
 
   useEffect(() => {
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const ios = /iphone|ipad|ipod/.test(userAgent);
+    const ios = /iphone|ipad|ipod/.test(userAgent) ||
+      (/macintosh/.test(userAgent) && window.navigator.maxTouchPoints > 1);
     setIsIos(ios);
-    
-    // Verifica se está rodando em modo standalone (PWA)
-    const checkStandalone = () => window.matchMedia("(display-mode: standalone)").matches || ("standalone" in window.navigator && (window.navigator as any).standalone === true);
-    const standalone = checkStandalone();
-    setIsStandalone(standalone);
 
-    // Salva e lê do localStorage para lembrar que já foi instalado mesmo se abrir no navegador
-    const locallyInstalled = localStorage.getItem("pwa_installed") === "true";
-    setIsInstalled(standalone || locallyInstalled);
-    if (standalone) {
-      localStorage.setItem("pwa_installed", "true");
-    }
-
-    // Verifica compatibilidade com a API de instalação
-    const supportsPrompt = 'onbeforeinstallprompt' in window || 'BeforeInstallPromptEvent' in window;
-    setIsSupported(supportsPrompt || ios);
+    const displayMode = window.matchMedia("(display-mode: standalone)");
+    const updateStandalone = () => {
+      const standalone = displayMode.matches ||
+        ("standalone" in window.navigator && window.navigator.standalone === true);
+      setIsStandalone(standalone);
+      if (standalone) {
+        setIsInstalled(true);
+        deferredPrompt.current = null;
+        setCanInstall(false);
+      }
+    };
+    updateStandalone();
 
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      deferredPrompt.current = e as BeforeInstallPromptEvent;
+      setCanInstall(true);
+      setIsInstalled(false);
+    };
+
+    const handleInstalled = () => {
+      deferredPrompt.current = null;
+      setCanInstall(false);
+      setIsInstalled(true);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
-
-    window.addEventListener("appinstalled", () => {
-      setDeferredPrompt(null);
-      setIsStandalone(true);
-      setIsInstalled(true);
-      localStorage.setItem("pwa_installed", "true");
-    });
+    window.addEventListener("appinstalled", handleInstalled);
+    displayMode.addEventListener("change", updateStandalone);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("appinstalled", handleInstalled);
+      displayMode.removeEventListener("change", updateStandalone);
+      deferredPrompt.current = null;
     };
   }, []);
 
   const promptInstall = async () => {
-    if (!deferredPrompt) return;
-    
-    deferredPrompt.prompt();
-    
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === "accepted") {
-      setDeferredPrompt(null);
-      setIsStandalone(true);
-      setIsInstalled(true);
-      localStorage.setItem("pwa_installed", "true");
-    }
+    const prompt = deferredPrompt.current;
+    if (!prompt) return;
+
+    // Each browser prompt can only be used once, including dismissed prompts.
+    deferredPrompt.current = null;
+    setCanInstall(false);
+    await prompt.prompt();
+    const { outcome } = await prompt.userChoice;
+    return outcome;
   };
 
   return {
-    canInstall: !!deferredPrompt,
+    canInstall,
     promptInstall,
     isIos,
     isStandalone,
     isInstalled,
-    isSupported
   };
 }

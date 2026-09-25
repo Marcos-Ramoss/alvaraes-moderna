@@ -40,6 +40,7 @@ export class NoticiasMapper {
       slug: noticia.slug,
       titulo: noticia.titulo,
       resumo: noticia.resumo,
+      totalLeituras: noticia.totalLeituras,
       categoria: {
         id: noticia.categoria.id,
         nome: noticia.categoria.nome,

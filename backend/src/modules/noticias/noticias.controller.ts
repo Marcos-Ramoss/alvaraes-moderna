@@ -6,6 +6,7 @@ import type {
   ListarNoticiasQueryDto,
 } from "./dto/listar-noticias.query.dto.js";
 import { NoticiasService } from "./noticias.service.js";
+import type { RegistrarLeituraRequestDto } from "./dto/registrar-leitura.request.dto.js";
 
 type NoticiaSlugParams = { slug: string };
 type NoticiaIdParams = { id: string };
@@ -28,6 +29,13 @@ export class NoticiasController {
     const params = req.dadosValidados?.params as NoticiaSlugParams;
     const noticia = await this.noticiasService.buscarPublicadaPorSlug(params.slug);
     return res.json({ dados: noticia });
+  };
+
+  registrarLeitura = async (req: Request, res: Response) => {
+    const { slug } = req.dadosValidados?.params as NoticiaSlugParams;
+    const body = req.dadosValidados?.body as RegistrarLeituraRequestDto;
+    res.setHeader("Cache-Control", "no-store");
+    return res.json({ dados: await this.noticiasService.registrarLeitura(slug, body) });
   };
 
   listarAdministracao = async (req: Request, res: Response) => {

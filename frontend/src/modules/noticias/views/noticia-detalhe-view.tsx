@@ -4,6 +4,8 @@ import { MediaLightbox } from "@/components/media-lightbox";
 import { DemoTag, PhotoPlaceholder, Tag } from "@/components/ui-bits";
 import { LikeButton } from "@/components/like-button";
 import { CommentSection } from "@/components/comment-section";
+import { NoticiaSidebar } from "../components/noticia-sidebar";
+import { useRegistrarLeitura } from "../hooks/use-registrar-leitura";
 import { formatarDataPublica, noticiasApi } from "../api/noticias.api";
 
 function getVídeoEmbedUrl(url?: string) {
@@ -37,7 +39,6 @@ function getVídeoEmbedUrl(url?: string) {
     return null;
   }
 }
-
 export function NoticiaDetalheView({
   article,
   related,
@@ -46,6 +47,7 @@ export function NoticiaDetalheView({
   related: Awaited<ReturnType<typeof noticiasApi.listar>>['dados'];
 }) {
   const [copied, setCopied] = useState(false);
+  useRegistrarLeitura(article.slug);
   const videoEmbedUrl = getVídeoEmbedUrl(article.video?.url);
   const imagensDaNoticia = (
     article.imagens && article.imagens.length > 0
@@ -93,8 +95,8 @@ export function NoticiaDetalheView({
         <article className="min-w-0">
           <div className="flex flex-wrap gap-2">
             <Tag>{article.categoria.nome}</Tag>
-            {article.tipoConteúdo === "OPINIAO" && <Tag>Opinião</Tag>}
-            {article.tipoConteúdo === "PATROCINADO" && <Tag>Conteúdo patrocinado</Tag>}
+            {article.tipoConteudo === "OPINIAO" && <Tag>Opinião</Tag>}
+            {article.tipoConteudo === "PATROCINADO" && <Tag>Conteúdo patrocinado</Tag>}
             {article.demonstracao && <DemoTag />}
           </div>
 
@@ -109,7 +111,6 @@ export function NoticiaDetalheView({
             <span className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">AM</span>
             <span><strong className="text-foreground">Por {article.autorNome}</strong><br />{formatarDataPublica(article.publicadoEm ?? article.criadoEm)}</span>
             {article.alteradoEm && <span>· Atualizado em {formatarDataPublica(article.alteradoEm)}</span>}
-            <span className="ml-auto">◉ 1,2 mil　▢ 12</span>
           </div>
 
           <div className="mt-5 space-y-3">
@@ -146,21 +147,8 @@ export function NoticiaDetalheView({
           {related.length > 0 && <section className="mt-8"><h2 className="font-display text-2xl text-primary">Notícias relacionadas</h2><div className="mt-3 grid gap-4 sm:grid-cols-3">{related.map((noticia) => <Link key={noticia.slug} to="/noticias/$slug" params={{ slug: noticia.slug }} className="overflow-hidden rounded-lg border border-border bg-card hover:border-primary">{noticia.imagemUrl ? <img src={noticia.imagemUrl} alt={noticia.titulo} className="aspect-[16/9] w-full object-cover" /> : <div className="aspect-[16/9] bg-secondary" />}<div className="p-3"><Tag>{noticia.categoria.nome}</Tag><h3 className="mt-2 font-display text-base leading-tight text-primary">{noticia.titulo}</h3><p className="mt-2 text-[11px] text-muted-foreground">{formatarDataPublica(noticia.publicadoEm ?? noticia.criadoEm)}</p></div></Link>)}</div></section>}
         </article>
 
-        <ArticleSidebar article={article} related={related} />
+        <NoticiaSidebar key={article.slug} />
       </div>
     </div>
   );
-}
-
-function ArticleSidebar({ article, related }: { article: Awaited<ReturnType<typeof noticiasApi.buscarPorSlug>>; related: Awaited<ReturnType<typeof noticiasApi.listar>>['dados'] }) {
-  const ranking = related.slice(0, 5);
-  const adImage = related.find((noticia) => noticia.imagemUrl)?.imagemUrl;
-
-  return <aside className="space-y-4 lg:sticky lg:top-24">
-    <section className="rounded-lg border border-border bg-card p-4 shadow-sm"><div className="mb-2 flex items-center justify-between"><h2 className="font-display text-2xl text-primary">Mais lidas</h2><Link to="/noticias" search={{}} className="text-xs font-semibold text-primary">Ver todas →</Link></div><div className="divide-y divide-border">{ranking.map((noticia, index) => <Link key={noticia.slug} to="/noticias/$slug" params={{ slug: noticia.slug }} className="flex gap-3 py-3"><span className="font-display text-xl text-primary">{String(index + 1).padStart(2, "0")}</span>{noticia.imagemUrl && <img src={noticia.imagemUrl} alt="" className="size-12 shrink-0 rounded object-cover" />}<span className="min-w-0"><strong className="block font-display text-sm leading-tight text-primary">{noticia.titulo}</strong><small className="text-[10px] text-muted-foreground">{formatarDataPublica(noticia.publicadoEm ?? noticia.criadoEm)}</small></span></Link>)}</div></section>
-    <section className="rounded-lg bg-secondary p-5"><p className="text-2xl">✉</p><h2 className="mt-2 font-display text-xl text-primary">Receba as principais noticias no seu e-mail</h2><p className="mt-2 text-sm text-foreground/70">Fique por dentro do que acontece em Alvarães.</p><Link to="/boletim" className="mt-4 inline-flex rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">Quero receber →</Link></section>
-    {adImage && <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm"><p className="p-3 pb-0 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Publicidade</p><img src={adImage} alt="" className="mt-2 aspect-[16/9] w-full object-cover" /><div className="p-4"><h2 className="font-display text-xl text-primary">Valorize o que é nosso.</h2><p className="mt-1 text-sm text-muted-foreground">Anuncie no Alvarães Moderna.</p><Link to="/anuncie" className="mt-3 inline-flex rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">Anuncie agora →</Link></div></section>}
-    <section className="rounded-lg border border-border bg-card p-4"><div className="flex items-center justify-between"><h2 className="font-display text-xl text-primary">Agenda de eventos</h2><Link to="/agenda" className="text-xs font-semibold text-primary">Ver agenda →</Link></div><div className="mt-3 space-y-2"><div className="rounded border border-border p-3 text-sm"><strong>12 SET</strong><span className="ml-3">Feira de produtores locais</span></div><div className="rounded border border-border p-3 text-sm"><strong>20 SET</strong><span className="ml-3">Festival cultural</span></div><div className="rounded border border-border p-3 text-sm"><strong>28 SET</strong><span className="ml-3">Campeonato municipal</span></div></div></section>
-    <section className="rounded-lg bg-primary p-5 text-primary-foreground"><h2 className="font-display text-2xl">Alvarães Moderna</h2><p className="mt-2 text-sm text-primary-foreground/80">Histórias que conectam a nossa gente.</p><Link to="/sobre" className="mt-4 inline-flex rounded-full bg-background px-4 py-2 text-xs font-semibold text-primary">Conheça o portal →</Link></section>
-  </aside>;
 }
