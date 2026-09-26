@@ -81,6 +81,46 @@ export function temPermissao(usuario: UsuarioAdmin | null | undefined, permissao
   return Array.isArray(usuario.permissoes) && usuario.permissoes.includes(permissao);
 }
 
+export type MetricaCard = {
+  total: number;
+  periodo: number;
+  anterior: number;
+  variacao: number;
+  direcao: "subindo" | "descendo" | "estavel";
+  textoPeriodo: string;
+  textoTendencia: string;
+};
+
+export type PontoEvolucao = {
+  rotulo: string;
+  dataCompleta: string;
+  noticias: number;
+  comercios: number;
+  eventos: number;
+  cursos: number;
+  total: number;
+};
+
+export type ItemDistribuicao = {
+  nome: string;
+  chave: string;
+  total: number;
+  periodo: number;
+  cor: string;
+};
+
+export type AtividadeRecenteAdmin = {
+  id: string;
+  usuarioNome: string;
+  usuarioEmail: string;
+  acao: string;
+  recurso: string;
+  recursoId?: string | null;
+  tituloRecurso?: string | null;
+  descricao: string;
+  criadoEm: string;
+};
+
 export type ResumoAdmin = {
   contagens: {
     noticias: number;
@@ -91,6 +131,23 @@ export type ResumoAdmin = {
     usuarios: number;
     contatos: number;
     anuncios: number;
+  };
+  cards?: {
+    noticias: MetricaCard;
+    comercios: MetricaCard;
+    eventos: MetricaCard;
+    cursos: MetricaCard;
+    anuncios: MetricaCard;
+    contatos: MetricaCard;
+    inscritosBoletim: MetricaCard;
+    usuarios: MetricaCard;
+  };
+  evolucao?: PontoEvolucao[];
+  distribuicao?: ItemDistribuicao[];
+  periodo?: {
+    dataInicio: string;
+    dataFim: string;
+    dias: number;
   };
   demo: {
     noticias: number;
@@ -106,6 +163,7 @@ export type ResumoAdmin = {
     publicado: boolean;
     publicadoEm: string;
   }>;
+  atividadesRecentes?: AtividadeRecenteAdmin[];
   usuario?: UsuarioAdmin;
 };
 
@@ -257,8 +315,12 @@ export const adminApi = {
     return request<{ usuario: UsuarioAdmin }>("/auth/me");
   },
 
-  resumo() {
-    return request<ResumoAdmin>("/admin/resumo");
+  resumo(params?: { dataInicio?: string | undefined; dataFim?: string | undefined }) {
+    const search = new URLSearchParams();
+    if (params?.dataInicio) search.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) search.set("dataFim", params.dataFim);
+    const qs = search.toString();
+    return request<ResumoAdmin>(`/admin/resumo${qs ? `?${qs}` : ""}`);
   },
 
   massaDelete(entidade: string, ids: string[]) {
@@ -275,8 +337,28 @@ export const adminApi = {
     });
   },
 
-  async listarNoticias() {
-    const resposta = await request<{ dados: NoticiaAdmin[] }>("/admin/noticias?limite=1000");
+  async listarNoticias(params?: {
+    busca?: string | undefined;
+    categoria?: string | undefined;
+    status?: string | undefined;
+    destaque?: boolean | undefined;
+    dataInicio?: string | undefined;
+    dataFim?: string | undefined;
+    pagina?: number | undefined;
+    limite?: number | undefined;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.set("limite", String(params?.limite ?? 1000));
+    if (params?.pagina) searchParams.set("pagina", String(params.pagina));
+    if (params?.busca) searchParams.set("busca", params.busca);
+    if (params?.categoria) searchParams.set("categoria", params.categoria);
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.destaque !== undefined) searchParams.set("destaque", String(params.destaque));
+    if (params?.dataInicio) searchParams.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) searchParams.set("dataFim", params.dataFim);
+
+    const query = searchParams.toString();
+    const resposta = await request<{ dados: NoticiaAdmin[] }>(`/admin/noticias${query ? `?${query}` : ""}`);
     return resposta.dados;
   },
 
@@ -306,8 +388,30 @@ export const adminApi = {
     });
   },
 
-  async listarComercios() {
-    const resposta = await request<{ dados: ComercioAdmin[] }>("/admin/comercios?limite=1000");
+  async listarComercios(params?: {
+    busca?: string | undefined;
+    categoria?: string | undefined;
+    status?: string | undefined;
+    patrocinado?: boolean | undefined;
+    possuiPagina?: boolean | undefined;
+    dataInicio?: string | undefined;
+    dataFim?: string | undefined;
+    pagina?: number | undefined;
+    limite?: number | undefined;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.set("limite", String(params?.limite ?? 1000));
+    if (params?.pagina) searchParams.set("pagina", String(params.pagina));
+    if (params?.busca) searchParams.set("busca", params.busca);
+    if (params?.categoria) searchParams.set("categoria", params.categoria);
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.patrocinado !== undefined) searchParams.set("patrocinado", String(params.patrocinado));
+    if (params?.possuiPagina !== undefined) searchParams.set("possuiPagina", String(params.possuiPagina));
+    if (params?.dataInicio) searchParams.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) searchParams.set("dataFim", params.dataFim);
+
+    const query = searchParams.toString();
+    const resposta = await request<{ dados: ComercioAdmin[] }>(`/admin/comercios${query ? `?${query}` : ""}`);
     return resposta.dados;
   },
 
@@ -337,8 +441,28 @@ export const adminApi = {
     });
   },
 
-  async listarEventos() {
-    const resposta = await request<{ dados: EventoAdmin[] }>("/admin/eventos?limite=1000");
+  async listarEventos(params?: {
+    busca?: string | undefined;
+    categoria?: string | undefined;
+    situacao?: string | undefined;
+    status?: string | undefined;
+    dataInicio?: string | undefined;
+    dataFim?: string | undefined;
+    pagina?: number | undefined;
+    limite?: number | undefined;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.set("limite", String(params?.limite ?? 1000));
+    if (params?.pagina) searchParams.set("pagina", String(params.pagina));
+    if (params?.busca) searchParams.set("busca", params.busca);
+    if (params?.categoria) searchParams.set("categoria", params.categoria);
+    if (params?.situacao) searchParams.set("situacao", params.situacao);
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.dataInicio) searchParams.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) searchParams.set("dataFim", params.dataFim);
+
+    const query = searchParams.toString();
+    const resposta = await request<{ dados: EventoAdmin[] }>(`/admin/eventos${query ? `?${query}` : ""}`);
     return resposta.dados;
   },
 
@@ -368,8 +492,28 @@ export const adminApi = {
     });
   },
 
-  async listarCursos() {
-    const resposta = await request<{ dados: CursoAdmin[] }>("/admin/cursos?limite=1000");
+  async listarCursos(params?: {
+    busca?: string | undefined;
+    modalidade?: string | undefined;
+    situacao?: string | undefined;
+    status?: string | undefined;
+    dataInicio?: string | undefined;
+    dataFim?: string | undefined;
+    pagina?: number | undefined;
+    limite?: number | undefined;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.set("limite", String(params?.limite ?? 1000));
+    if (params?.pagina) searchParams.set("pagina", String(params.pagina));
+    if (params?.busca) searchParams.set("busca", params.busca);
+    if (params?.modalidade) searchParams.set("modalidade", params.modalidade);
+    if (params?.situacao) searchParams.set("situacao", params.situacao);
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.dataInicio) searchParams.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) searchParams.set("dataFim", params.dataFim);
+
+    const query = searchParams.toString();
+    const resposta = await request<{ dados: CursoAdmin[] }>(`/admin/cursos${query ? `?${query}` : ""}`);
     return resposta.dados;
   },
 

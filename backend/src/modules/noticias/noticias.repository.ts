@@ -2,6 +2,7 @@ import type { Midia, Prisma, StatusPublicacao } from "@prisma/client";
 import { TipoCategoria, TipoVinculoMidia } from "@prisma/client";
 import { prisma } from "../../database/prisma.js";
 import { AppError } from "../../common/errors/app-error.js";
+import { parseDataInicio, parseDataFim } from "../../common/utils/data-fuso.js";
 
 type ListarPublicasFiltros = {
   busca?: string | undefined;
@@ -14,6 +15,8 @@ type ListarPublicasFiltros = {
 
 type ListarAdminFiltros = ListarPublicasFiltros & {
   status?: StatusPublicacao | undefined;
+  dataInicio?: string | undefined;
+  dataFim?: string | undefined;
 };
 
 type NoticiaComCategoria = Prisma.NoticiaGetPayload<{
@@ -238,9 +241,18 @@ export class NoticiasRepository {
   }
 
   private montarWhere(filtros: ListarAdminFiltros): Prisma.NoticiaWhereInput {
+    const filtroCriadoEm: Prisma.DateTimeFilter = {};
+    if (filtros.dataInicio) {
+      filtroCriadoEm.gte = parseDataInicio(filtros.dataInicio);
+    }
+    if (filtros.dataFim) {
+      filtroCriadoEm.lte = parseDataFim(filtros.dataFim);
+    }
+
     return {
       ...(filtros.status ? { status: filtros.status } : {}),
       ...(filtros.destaque !== undefined ? { destaque: filtros.destaque } : {}),
+      ...(filtros.dataInicio || filtros.dataFim ? { criadoEm: filtroCriadoEm } : {}),
       ...(filtros.categoria
         ? {
             categoria: {

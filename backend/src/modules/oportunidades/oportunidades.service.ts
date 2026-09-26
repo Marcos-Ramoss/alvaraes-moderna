@@ -52,6 +52,8 @@ export class OportunidadesService {
         modalidade: filtros.modalidade as ModalidadeOportunidade | undefined,
         situacao: (filtros.situacao as any) ?? "TODAS",
         status: filtros.status as StatusPublicacao | undefined,
+        dataInicio: filtros.dataInicio,
+        dataFim: filtros.dataFim,
         pagina: filtros.pagina ?? 1,
         limite: Math.min(filtros.limite ?? 100, 100), // Proteção admin
       },

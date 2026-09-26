@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { AdminShell, AdminLoadingPage } from "@/components/admin/admin-shell";
-import { AdminPaginacao } from "@/components/admin/admin-list-controls";
+import { AdminPaginacao, AdminFiltroPeriodo } from "@/components/admin/admin-list-controls";
 import { AdminMassActions } from "@/components/admin/admin-mass-actions";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
@@ -90,6 +90,8 @@ export function AdminComerciosView() {
   const [excluindo, setExcluindo] = useState(false);
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
   const etapas = ["Dados principais", "Detalhes", "Contato", "Midias", "Pré-visualização", "Publicação"];
 
   function handleSelecionarUm(id: string, checked: boolean) {
@@ -99,16 +101,41 @@ export function AdminComerciosView() {
     setSelecionados(next);
   }
 
-  async function carregar() {
+  async function carregar(inicio = dataInicio, fim = dataFim) {
     setCarregandoLista(true);
     try {
-      setComercios(await adminApi.listarComercios());
+      setComercios(
+        await adminApi.listarComercios({
+          dataInicio: inicio || undefined,
+          dataFim: fim || undefined,
+        })
+      );
     } catch (error) {
       setErro(formatarErroApi(error));
     } finally {
       setCarregandoLista(false);
     }
   }
+
+  const handleMudarDataInicio = (valor: string) => {
+    setDataInicio(valor);
+    setPagina(1);
+    carregar(valor, dataFim);
+  };
+
+  const handleMudarDataFim = (valor: string) => {
+    setDataFim(valor);
+    setPagina(1);
+    carregar(dataInicio, valor);
+  };
+
+  const handleLimparPeriodo = () => {
+    setDataInicio("");
+    setDataFim("");
+    setPagina(1);
+    carregar("", "");
+  };
+
   useEffect(() => {
     carregar();
   }, []);
@@ -360,10 +387,22 @@ export function AdminComerciosView() {
               className="admin-input pl-9"
             />
           </label>
-          <Button type="button" variant="outline" onClick={carregar}>
+          <Button type="button" variant="outline" onClick={() => carregar()}>
             <RefreshCcw className="h-4 w-4" />
             Atualizar
           </Button>
+        </div>
+
+        <div className="border-b border-admin-border bg-admin-background/40 p-4">
+          <AdminFiltroPeriodo
+            dataInicio={dataInicio}
+            dataFim={dataFim}
+            aoMudarDataInicio={handleMudarDataInicio}
+            aoMudarDataFim={handleMudarDataFim}
+            aoLimpar={handleLimparPeriodo}
+            totalRegistros={filtrados.length}
+            titulo="Filtrar por Período de Cadastro"
+          />
         </div>
         {carregandoLista ? (
           <p className="admin-subtitle p-5 text-sm">Carregando comercios...</p>

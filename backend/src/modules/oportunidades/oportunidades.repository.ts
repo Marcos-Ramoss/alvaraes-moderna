@@ -1,6 +1,7 @@
 import type { Midia, ModalidadeOportunidade, Prisma, StatusPublicacao } from "@prisma/client";
 import { TipoCategoria, TipoVinculoMidia } from "@prisma/client";
 import { prisma } from "../../database/prisma.js";
+import { parseDataInicio, parseDataFim } from "../../common/utils/data-fuso.js";
 
 type SituacaoOportunidade = "ABERTA" | "ENCERRADA" | "TODAS";
 
@@ -14,6 +15,8 @@ type ListarPublicosFiltros = {
 
 type ListarAdminFiltros = ListarPublicosFiltros & {
   status?: StatusPublicacao | undefined;
+  dataInicio?: string | undefined;
+  dataFim?: string | undefined;
 };
 
 type OportunidadeComCategoria = Prisma.OportunidadeGetPayload<{
@@ -194,9 +197,18 @@ export class OportunidadesRepository {
     filtros: ListarAdminFiltros,
     agora: Date,
   ): Prisma.OportunidadeWhereInput {
+    const filtroCriadoEm: Prisma.DateTimeFilter = {};
+    if (filtros.dataInicio) {
+      filtroCriadoEm.gte = parseDataInicio(filtros.dataInicio);
+    }
+    if (filtros.dataFim) {
+      filtroCriadoEm.lte = parseDataFim(filtros.dataFim);
+    }
+
     return {
       ...(filtros.status ? { status: filtros.status } : {}),
       ...(filtros.modalidade ? { modalidade: filtros.modalidade } : {}),
+      ...(filtros.dataInicio || filtros.dataFim ? { criadoEm: filtroCriadoEm } : {}),
       ...(filtros.situacao === "ABERTA" ? { prazo: { gte: agora } } : {}),
       ...(filtros.situacao === "ENCERRADA" ? { prazo: { lt: agora } } : {}),
       ...(filtros.busca

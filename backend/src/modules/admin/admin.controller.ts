@@ -38,8 +38,17 @@ export class AdminController {
 
   buscarResumo = async (req: Request, res: Response) => {
     const usuarioId = req.usuarioAutenticado?.id;
+    const isMaster = req.usuarioAutenticado?.role === "MASTER";
+    const permissoes = req.usuarioAutenticado?.permissoes;
+    const { dataInicio, dataFim } = req.query as { dataInicio?: string; dataFim?: string };
+
     const [resumo, usuario] = await Promise.all([
-      this.adminService.buscarResumo(),
+      this.adminService.buscarResumo({
+        dataInicio,
+        dataFim,
+        permissoes,
+        isMaster,
+      }),
       usuarioId ? this.authService.buscarUsuarioAutenticado(usuarioId) : Promise.resolve(undefined),
     ]);
 

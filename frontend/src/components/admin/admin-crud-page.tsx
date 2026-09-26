@@ -21,7 +21,7 @@ import {
 } from "../ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { AdminShell, AdminLoadingPage } from "./admin-shell";
-import { AdminPaginacao } from "./admin-list-controls";
+import { AdminPaginacao, AdminFiltroPeriodo } from "./admin-list-controls";
 import { AdminMassActions } from "./admin-mass-actions";
 import { ImageUploader } from "./image-uploader";
 import { useAdminAuth } from "./use-admin-auth";
@@ -75,7 +75,7 @@ type AdminCrudPageProps<T, P> = {
   formularioInicial: Formulario;
   campos: CampoFormulario[];
   colunas: Coluna<T>[];
-  listar: () => Promise<T[]>;
+  listar: (filtros?: { dataInicio?: string | undefined; dataFim?: string | undefined }) => Promise<T[]>;
   criar: (payload: P) => Promise<unknown>;
   atualizar: (id: string, payload: P) => Promise<unknown>;
   publicar: (id: string) => Promise<unknown>;
@@ -126,6 +126,8 @@ export function AdminCrudPage<T extends { id: string }, P>({
   const [excluindo, setExcluindo] = useState(false);
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
 
   function handleSelecionarUm(id: string, checked: boolean) {
     const next = new Set(selecionados);
@@ -134,10 +136,13 @@ export function AdminCrudPage<T extends { id: string }, P>({
     setSelecionados(next);
   }
 
-  async function carregar() {
+  async function carregar(inicio = dataInicio, fim = dataFim) {
     setCarregandoLista(true);
     try {
-      const dados = await listar();
+      const dados = await listar({
+        dataInicio: inicio || undefined,
+        dataFim: fim || undefined,
+      });
       setItems(dados);
     } catch (error) {
       setErro(formatarErroApi(error));
@@ -145,6 +150,25 @@ export function AdminCrudPage<T extends { id: string }, P>({
       setCarregandoLista(false);
     }
   }
+
+  const handleMudarDataInicio = (valor: string) => {
+    setDataInicio(valor);
+    setPagina(1);
+    carregar(valor, dataFim);
+  };
+
+  const handleMudarDataFim = (valor: string) => {
+    setDataFim(valor);
+    setPagina(1);
+    carregar(dataInicio, valor);
+  };
+
+  const handleLimparPeriodo = () => {
+    setDataInicio("");
+    setDataFim("");
+    setPagina(1);
+    carregar("", "");
+  };
 
   useEffect(() => {
     carregar();
@@ -374,10 +398,22 @@ export function AdminCrudPage<T extends { id: string }, P>({
               className="admin-input pl-9"
             />
           </label>
-          <Button type="button" variant="outline" onClick={carregar}>
+          <Button type="button" variant="outline" onClick={() => carregar()}>
             <RefreshCcw className="h-4 w-4" />
             Atualizar
           </Button>
+        </div>
+
+        <div className="border-b border-admin-border bg-admin-background/40 p-4">
+          <AdminFiltroPeriodo
+            dataInicio={dataInicio}
+            dataFim={dataFim}
+            aoMudarDataInicio={handleMudarDataInicio}
+            aoMudarDataFim={handleMudarDataFim}
+            aoLimpar={handleLimparPeriodo}
+            totalRegistros={filtrados.length}
+            titulo={titulo === "Agenda" ? "Filtrar por Data do Evento" : "Filtrar por Período de Cadastro"}
+          />
         </div>
 
         {carregandoLista ? (

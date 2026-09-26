@@ -13,6 +13,8 @@ export const listarEventosQueryDto = z.object({
 
 export const listarEventosAdminQueryDto = listarEventosQueryDto.extend({
   status: z.enum(["RASCUNHO", "PUBLICADO", "ARQUIVADO"]).optional(),
+  dataInicio: z.string().trim().optional(),
+  dataFim: z.string().trim().optional(),
 });
 
 export type ListarEventosQueryDto = z.infer<typeof listarEventosQueryDto>;

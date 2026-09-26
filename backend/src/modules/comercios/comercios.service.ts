@@ -50,6 +50,8 @@ export class ComerciosService {
       ...(filtros.patrocinado !== undefined ? { patrocinado: filtros.patrocinado } : {}),
       ...(filtros.possuiPagina !== undefined ? { possuiPagina: filtros.possuiPagina } : {}),
       ...(filtros.status ? { status: filtros.status as StatusPublicacao } : {}),
+      ...(filtros.dataInicio ? { dataInicio: filtros.dataInicio } : {}),
+      ...(filtros.dataFim ? { dataFim: filtros.dataFim } : {}),
     });
 
     return { itens: itens.map((comercio) => this.comerciosMapper.paraDetalhe(comercio)), total };
