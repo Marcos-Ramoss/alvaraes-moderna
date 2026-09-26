@@ -1,7 +1,17 @@
 import type { Request } from "express";
 import { type AcaoAuditoria, Prisma, type RecursoAuditoria } from "@prisma/client";
+import { AppError } from "../../common/errors/app-error.js";
 import { AuditoriaRepository } from "./auditoria.repository.js";
 import type { ListarAuditoriaQueryDto } from "./dto/listar-auditoria.query.dto.js";
+
+const FUSO_ALVARAES = "-04:00";
+
+function parseDataLimite(data: string): Date {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    return new Date(`${data}T00:00:00.000${FUSO_ALVARAES}`);
+  }
+  return new Date(data);
+}
 
 export type RegistrarAuditoriaInput = {
   req?: Request | undefined;
@@ -64,6 +74,63 @@ export class AuditoriaService {
 
   async listar(filtros: ListarAuditoriaQueryDto) {
     return this.auditoriaRepository.listar(filtros);
+  }
+
+  async excluirPorId(id: string, req?: Request) {
+    const registro = await this.auditoriaRepository.buscarPorId(id);
+    if (!registro) {
+      throw new AppError("Registro de auditoria não encontrado.", 404);
+    }
+
+    await this.auditoriaRepository.excluirPorId(id);
+
+    await this.registrar({
+      req,
+      acao: "EXCLUIR",
+      recurso: "SISTEMA",
+      recursoId: id,
+      tituloRecurso: registro.tituloRecurso ?? undefined,
+      descricao: `Excluiu o registro de auditoria de ${registro.usuarioNome} (${registro.descricao.slice(0, 80)}...).`,
+      dadosAnteriores: {
+        id: registro.id,
+        acao: registro.acao,
+        recurso: registro.recurso,
+        criadoEm: registro.criadoEm,
+      },
+    });
+
+    return { sucesso: true };
+  }
+
+  async contarAntigos(dataLimiteStr: string) {
+    const dataLimite = parseDataLimite(dataLimiteStr);
+    if (Number.isNaN(dataLimite.getTime())) {
+      throw new AppError("Data limite inválida.", 400);
+    }
+    const total = await this.auditoriaRepository.contarAnteriores(dataLimite);
+    return { total, dataLimite: dataLimiteStr };
+  }
+
+  async excluirAntigos(dataLimiteStr: string, req?: Request) {
+    const dataLimite = parseDataLimite(dataLimiteStr);
+    if (Number.isNaN(dataLimite.getTime())) {
+      throw new AppError("Data limite inválida.", 400);
+    }
+
+    const totalExcluidos = await this.auditoriaRepository.excluirAnteriores(dataLimite);
+
+    await this.registrar({
+      req,
+      acao: "EXCLUIR",
+      recurso: "SISTEMA",
+      descricao: `Excluiu em lote ${totalExcluidos} registro(s) de auditoria anteriores a ${dataLimiteStr}.`,
+      dadosNovos: {
+        dataLimite: dataLimiteStr,
+        totalExcluidos,
+      },
+    });
+
+    return { totalExcluidos, dataLimite: dataLimiteStr };
   }
 }
 

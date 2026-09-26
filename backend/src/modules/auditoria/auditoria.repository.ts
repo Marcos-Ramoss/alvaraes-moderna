@@ -82,4 +82,37 @@ export class AuditoriaRepository {
 
     return { itens, total };
   }
+
+  async buscarPorId(id: string) {
+    return prisma.logAuditoria.findUnique({
+      where: { id },
+    });
+  }
+
+  async excluirPorId(id: string) {
+    return prisma.logAuditoria.delete({
+      where: { id },
+    });
+  }
+
+  async contarAnteriores(dataLimite: Date) {
+    return prisma.logAuditoria.count({
+      where: {
+        criadoEm: {
+          lt: dataLimite,
+        },
+      },
+    });
+  }
+
+  async excluirAnteriores(dataLimite: Date) {
+    const resultado = await prisma.logAuditoria.deleteMany({
+      where: {
+        criadoEm: {
+          lt: dataLimite,
+        },
+      },
+    });
+    return resultado.count;
+  }
 }

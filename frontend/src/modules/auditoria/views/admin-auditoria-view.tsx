@@ -16,10 +16,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Code2,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
+import { AdminPaginacao } from "@/components/admin/admin-list-controls";
 import {
   adminApi,
   temPermissao,
@@ -31,14 +33,26 @@ import {
 } from "@/lib/admin-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ACOES_LABELS: Record<AcaoAuditoria, { label: string; classe: string }> = {
   CRIAR: { label: "Criação", classe: "bg-emerald-50 text-emerald-800 border-emerald-300" },
@@ -75,10 +89,22 @@ export function AdminAuditoriaView() {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [pagina, setPagina] = useState(1);
-  const limite = 25;
+  const [porPagina, setPorPagina] = useState(25);
 
   // Modal de Detalhes / Inspecionar Diff
   const [logSelecionado, setLogSelecionado] = useState<LogAuditoriaAdmin | null>(null);
+
+  // Exclusão Individual
+  const [logParaExcluir, setLogParaExcluir] = useState<LogAuditoriaAdmin | null>(null);
+  const [excluindoIndividual, setExcluindoIndividual] = useState(false);
+
+  // Exclusão em Lote (Expurgo por data limite)
+  const [modalExpurgarAberto, setModalExpurgarAberto] = useState(false);
+  const [dataLimiteExpurgo, setDataLimiteExpurgo] = useState("");
+  const [contagemExpurgo, setContagemExpurgo] = useState<number | null>(null);
+  const [verificandoContagem, setVerificandoContagem] = useState(false);
+  const [executandoExpurgo, setExecutandoExpurgo] = useState(false);
+  const [dialogConfirmacaoExpurgoAberto, setDialogConfirmacaoExpurgoAberto] = useState(false);
 
   const autorizado = useMemo(() => {
     return temPermissao(usuarioLogado, "AUDITORIA");
@@ -94,7 +120,7 @@ export function AdminAuditoriaView() {
         dataInicio: dataInicio || undefined,
         dataFim: dataFim || undefined,
         pagina,
-        limite,
+        limite: porPagina,
       });
       setLogs(res.dados);
       setTotal(res.total);
@@ -111,7 +137,7 @@ export function AdminAuditoriaView() {
     if (!carregandoAuth && autorizado) {
       carregarLogs();
     }
-  }, [carregandoAuth, autorizado, pagina, filtroAcao, filtroRecurso]);
+  }, [carregandoAuth, autorizado, pagina, porPagina, filtroAcao, filtroRecurso]);
 
   const handleBuscar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +154,7 @@ export function AdminAuditoriaView() {
     setPagina(1);
     setCarregandoLista(true);
     adminApi
-      .listarLogsAuditoria({ pagina: 1, limite })
+      .listarLogsAuditoria({ pagina: 1, limite: porPagina })
       .then((res) => {
         setLogs(res.dados);
         setTotal(res.total);
@@ -141,7 +167,65 @@ export function AdminAuditoriaView() {
       });
   };
 
-  const totalPaginas = Math.ceil(total / limite) || 1;
+  const handleExcluirIndividual = async () => {
+    if (!logParaExcluir) return;
+    try {
+      setExcluindoIndividual(true);
+      await adminApi.excluirLogAuditoria(logParaExcluir.id);
+      toast.success("Registro de rastreamento excluído com sucesso.");
+      setLogParaExcluir(null);
+      carregarLogs();
+    } catch (err) {
+      toast.error("Erro ao excluir registro de auditoria", {
+        description: formatarErroApi(err),
+      });
+    } finally {
+      setExcluindoIndividual(false);
+    }
+  };
+
+  const handleVerificarQuantidade = async () => {
+    if (!dataLimiteExpurgo) {
+      toast.error("Informe a data limite para contagem.");
+      return;
+    }
+    try {
+      setVerificandoContagem(true);
+      const res = await adminApi.contarLogsAuditoriaAntigos(dataLimiteExpurgo);
+      setContagemExpurgo(res.dados.total);
+    } catch (err) {
+      toast.error("Erro ao verificar quantidade de registros", {
+        description: formatarErroApi(err),
+      });
+    } finally {
+      setVerificandoContagem(false);
+    }
+  };
+
+  const handleExecutarExpurgo = async () => {
+    if (!dataLimiteExpurgo) return;
+    try {
+      setExecutandoExpurgo(true);
+      const res = await adminApi.expurgarLogsAuditoriaAntigos(dataLimiteExpurgo);
+      toast.success(
+        `${res.dados.totalExcluidos} registro(s) de rastreamento foram excluídos com sucesso.`
+      );
+      setDialogConfirmacaoExpurgoAberto(false);
+      setModalExpurgarAberto(false);
+      setContagemExpurgo(null);
+      setDataLimiteExpurgo("");
+      setPagina(1);
+      carregarLogs();
+    } catch (err) {
+      toast.error("Erro ao excluir registros em lote", {
+        description: formatarErroApi(err),
+      });
+    } finally {
+      setExecutandoExpurgo(false);
+    }
+  };
+
+  const totalPaginas = Math.ceil(total / porPagina) || 1;
 
   const formatarHora = (dataIso?: string) => {
     if (!dataIso) return "";
@@ -210,11 +294,24 @@ export function AdminAuditoriaView() {
 
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setModalExpurgarAberto(true);
+                setContagemExpurgo(null);
+              }}
+              className="gap-2 text-rose-700 hover:text-rose-800 hover:bg-rose-50 border-rose-200"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Excluir Antigos</span>
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={carregarLogs}
               disabled={carregandoLista}
-              className="w-full sm:w-auto gap-2"
+              className="gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${carregandoLista ? "animate-spin" : ""}`} />
               <span>Atualizar</span>
@@ -405,17 +502,27 @@ export function AdminAuditoriaView() {
                         </dd>
                       </dl>
 
-                      {/* Botão Ver Detalhes / Inspecionar Diff */}
-                      <div className="pt-2.5 border-t border-admin-border/50">
+                      {/* Ações Mobile: Ver Detalhes + Excluir */}
+                      <div className="pt-2.5 border-t border-admin-border/50 flex items-center gap-2">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => setLogSelecionado(log)}
-                          className="w-full gap-2 h-9 text-xs text-admin-sidebar hover:bg-admin-sidebar/10 font-semibold"
+                          className="flex-1 gap-2 h-9 text-xs text-admin-sidebar hover:bg-admin-sidebar/10 font-semibold"
                         >
                           <Eye className="h-4 w-4" />
                           <span>Ver Detalhes do Log & Diffs</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setLogParaExcluir(log)}
+                          title="Excluir este registro de rastreamento"
+                          className="h-9 w-9 p-0 text-admin-muted hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shrink-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </article>
@@ -428,12 +535,12 @@ export function AdminAuditoriaView() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-admin-border bg-admin-background/60 text-xs font-semibold text-admin-muted uppercase tracking-wider">
                     <tr>
-                      <th className="px-5 py-3.5">Ação</th>
-                      <th className="px-5 py-3.5">Módulo</th>
-                      <th className="px-5 py-3.5">Descrição da Operação</th>
-                      <th className="px-5 py-3.5">Responsável</th>
-                      <th className="px-5 py-3.5">Data e Hora</th>
-                      <th className="px-5 py-3.5 text-right">Detalhes</th>
+                      <th className="px-3.5 py-3">Ação</th>
+                      <th className="px-3.5 py-3">Módulo</th>
+                      <th className="px-3.5 py-3">Descrição da Operação</th>
+                      <th className="px-3.5 py-3">Responsável</th>
+                      <th className="px-3.5 py-3">Data e Hora</th>
+                      <th className="px-3.5 py-3 text-right">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-admin-border">
@@ -449,7 +556,7 @@ export function AdminAuditoriaView() {
                           className="transition-colors hover:bg-admin-background/40"
                         >
                           {/* Ação */}
-                          <td className="px-5 py-3.5 whitespace-nowrap">
+                          <td className="px-3.5 py-3 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${infoAcao.classe}`}
                             >
@@ -458,12 +565,12 @@ export function AdminAuditoriaView() {
                           </td>
 
                           {/* Módulo */}
-                          <td className="px-5 py-3.5 whitespace-nowrap text-xs font-medium text-admin-foreground">
+                          <td className="px-3.5 py-3 whitespace-nowrap text-xs font-medium text-admin-foreground">
                             {RECURSOS_LABELS[log.recurso] ?? log.recurso}
                           </td>
 
                           {/* Descrição */}
-                          <td className="px-5 py-3.5 min-w-[280px]">
+                          <td className="px-3.5 py-3 min-w-[200px]">
                             <p className="font-medium text-admin-foreground leading-snug">
                               {log.descricao}
                             </p>
@@ -475,7 +582,7 @@ export function AdminAuditoriaView() {
                           </td>
 
                           {/* Responsável */}
-                          <td className="px-5 py-3.5 whitespace-nowrap">
+                          <td className="px-3.5 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-admin-sidebar/10 text-xs font-bold text-admin-sidebar">
                                 {log.usuarioNome.charAt(0).toUpperCase()}
@@ -492,25 +599,36 @@ export function AdminAuditoriaView() {
                           </td>
 
                           {/* Data e Hora */}
-                          <td className="px-5 py-3.5 whitespace-nowrap text-xs text-admin-muted">
+                          <td className="px-3.5 py-3 whitespace-nowrap text-xs text-admin-muted">
                             <p className="font-medium text-admin-foreground">
                               {formatarDataPtBr(log.criadoEm)}
                             </p>
                             <p className="text-[11px] text-admin-muted">{formatarHora(log.criadoEm)}</p>
                           </td>
 
-                          {/* Botão Ver Detalhes */}
-                          <td className="px-5 py-3.5 whitespace-nowrap text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setLogSelecionado(log)}
-                              className="h-8 gap-1.5 text-xs text-admin-sidebar hover:bg-admin-sidebar/10"
-                              title="Inspecionar dados e diff"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              <span>Ver</span>
-                            </Button>
+                          {/* Ações: Ver Detalhes e Excluir */}
+                          <td className="px-3.5 py-3 whitespace-nowrap text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setLogSelecionado(log)}
+                                className="h-8 gap-1.5 text-xs text-admin-sidebar hover:bg-admin-sidebar/10"
+                                title="Inspecionar dados e diff"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                <span>Ver</span>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setLogParaExcluir(log)}
+                                className="h-8 w-8 text-admin-muted hover:text-rose-600 hover:bg-rose-50"
+                                title="Excluir este registro de rastreamento"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -522,34 +640,20 @@ export function AdminAuditoriaView() {
           )}
 
           {/* Paginação */}
-          {totalPaginas > 1 && (
-            <div className="flex items-center justify-between border-t border-admin-border px-5 py-3 bg-admin-background/40">
-              <p className="text-xs text-admin-muted">
-                Página <span className="font-semibold">{pagina}</span> de{" "}
-                <span className="font-semibold">{totalPaginas}</span> ({total} registros no total)
-              </p>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagina <= 1 || carregandoLista}
-                  onClick={() => setPagina((p) => Math.max(1, p - 1))}
-                  className="h-8 px-2"
-                >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagina >= totalPaginas || carregandoLista}
-                  onClick={() => setPagina((p) => p + 1)}
-                  className="h-8 px-2"
-                >
-                  Próxima
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
+          {total > 0 && (
+            <div className="border-t border-admin-border px-4 py-3 bg-admin-background/40">
+              <AdminPaginacao
+                paginaAtual={pagina}
+                totalPaginas={totalPaginas}
+                totalItens={total}
+                porPagina={porPagina}
+                setPagina={setPagina}
+                setPorPagina={(valor) => {
+                  setPorPagina(valor);
+                  setPagina(1);
+                }}
+                selectId="auditoria-admin-por-pagina"
+              />
             </div>
           )}
         </div>
@@ -652,6 +756,156 @@ export function AdminAuditoriaView() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO INDIVIDUAL */}
+      <AlertDialog open={Boolean(logParaExcluir)} onOpenChange={(aberto) => !aberto && setLogParaExcluir(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-rose-700">
+              <Trash2 className="h-5 w-5" />
+              Excluir Registro de Rastreamento
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este registro de rastreamento?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {logParaExcluir && (
+            <div className="rounded-lg border border-admin-border bg-admin-background/50 p-3 text-xs space-y-1">
+              <p className="font-semibold text-admin-foreground">{logParaExcluir.descricao}</p>
+              <p className="text-admin-muted">
+                Responsável: <strong className="text-admin-foreground">{logParaExcluir.usuarioNome}</strong> • {formatarDataPtBr(logParaExcluir.criadoEm)} às {formatarHora(logParaExcluir.criadoEm)}
+              </p>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={excluindoIndividual}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExcluirIndividual}
+              disabled={excluindoIndividual}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              {excluindoIndividual ? "Excluindo..." : "Confirmar Exclusão"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* MODAL DE CONFIGURAÇÃO DE EXCLUSÃO EM LOTE (POR DATA LIMITE) */}
+      <Dialog open={modalExpurgarAberto} onOpenChange={setModalExpurgarAberto}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-display text-xl text-rose-700">
+              <Trash2 className="h-5 w-5" />
+              Excluir Rastreamentos Antigos
+            </DialogTitle>
+            <DialogDescription>
+              Remova do histórico os registros de auditoria anteriores a uma data limite.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="data-limite-expurgo" className="text-sm font-semibold">
+                Excluir rastreamentos anteriores a:
+              </Label>
+              <Input
+                id="data-limite-expurgo"
+                type="date"
+                value={dataLimiteExpurgo}
+                onChange={(e) => {
+                  setDataLimiteExpurgo(e.target.value);
+                  setContagemExpurgo(null);
+                }}
+              />
+              <p className="text-xs text-admin-muted">
+                Exemplo: ao selecionar <strong>01/01/2026</strong>, serão excluídos todos os registros com data anterior a 01/01/2026.
+              </p>
+            </div>
+
+            {contagemExpurgo === null ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleVerificarQuantidade}
+                disabled={!dataLimiteExpurgo || verificandoContagem}
+                className="w-full gap-2 text-xs h-9"
+              >
+                <Search className={`h-3.5 w-3.5 ${verificandoContagem ? "animate-spin" : ""}`} />
+                {verificandoContagem ? "Consultando quantidade..." : "Verificar quantidade de registros"}
+              </Button>
+            ) : (
+              <div
+                className={`rounded-lg border p-3 text-xs space-y-1 ${
+                  contagemExpurgo === 0
+                    ? "border-slate-200 bg-slate-50 text-slate-700"
+                    : "border-amber-300 bg-amber-50 text-amber-900"
+                }`}
+              >
+                <p className="font-semibold text-sm">
+                  {contagemExpurgo === 0
+                    ? "Nenhum registro anterior encontrado."
+                    : `Foram encontrados ${contagemExpurgo} registro(s) para exclusão.`}
+                </p>
+                <p className="text-xs opacity-90">
+                  {contagemExpurgo === 0
+                    ? `Não existem registros de rastreamento com data anterior a ${formatarDataPtBr(dataLimiteExpurgo)}.`
+                    : `Estes ${contagemExpurgo} registro(s) anteriores a ${formatarDataPtBr(dataLimiteExpurgo)} serão removidos permanentemente.`}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setModalExpurgarAberto(false)}
+              disabled={executandoExpurgo}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              disabled={!dataLimiteExpurgo || contagemExpurgo === null || contagemExpurgo === 0 || executandoExpurgo}
+              onClick={() => setDialogConfirmacaoExpurgoAberto(true)}
+              className="bg-rose-600 hover:bg-rose-700 text-white gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>
+                {contagemExpurgo !== null && contagemExpurgo > 0
+                  ? `Excluir ${contagemExpurgo} registro(s)`
+                  : "Prosseguir para exclusão"}
+              </span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* CONFIRMAÇÃO FINAL DE EXCLUSÃO EM LOTE */}
+      <AlertDialog open={dialogConfirmacaoExpurgoAberto} onOpenChange={setDialogConfirmacaoExpurgoAberto}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-rose-700">Confirmar exclusão em lote</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você está prestes a remover permanentemente <strong>{contagemExpurgo}</strong> registro(s) de rastreamento anteriores a <strong>{dataLimiteExpurgo ? formatarDataPtBr(dataLimiteExpurgo) : ""}</strong>.
+              <br /><br />
+              Tem certeza que deseja prosseguir com a exclusão?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={executandoExpurgo}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExecutarExpurgo}
+              disabled={executandoExpurgo}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              {executandoExpurgo ? "Excluindo..." : "Sim, confirmar exclusão"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminShell>
   );
 }

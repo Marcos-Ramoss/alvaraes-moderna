@@ -11,7 +11,10 @@ export class UsuariosController {
   listar = async (req: Request, res: Response) => {
     const query = (req.dadosValidados?.query ?? req.query) as ListarUsuariosQueryDto;
     const { itens, total } = await this.usuariosService.listar(query);
-    return res.json({ dados: itens, total });
+    const pagina = query.pagina ?? 1;
+    const limite = query.limite ?? 30;
+    const totalPaginas = Math.ceil(total / limite) || 1;
+    return res.json({ dados: itens, total, pagina, limite, totalPaginas });
   };
 
   buscarPorId = async (req: Request, res: Response) => {

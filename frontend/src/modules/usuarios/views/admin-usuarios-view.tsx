@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
+import { AdminPaginacao } from "@/components/admin/admin-list-controls";
 import {
   adminApi,
   temPermissao,
@@ -78,6 +79,10 @@ export function AdminUsuariosView() {
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<"TODOS" | "ATIVO" | "INATIVO">("TODOS");
   const [filtroRole, setFiltroRole] = useState<"TODOS" | "MASTER" | "ADMIN">("TODOS");
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(1);
 
   // Modal formulário
   const [modalAberto, setModalAberto] = useState(false);
@@ -104,8 +109,16 @@ export function AdminUsuariosView() {
   const carregarUsuarios = async () => {
     try {
       setCarregandoLista(true);
-      const res = await adminApi.listarUsuarios({ limite: 100 });
+      const res = await adminApi.listarUsuarios({
+        busca: busca.trim() || undefined,
+        ativo: filtroStatus === "TODOS" ? undefined : filtroStatus === "ATIVO",
+        role: filtroRole === "TODOS" ? undefined : (filtroRole as RoleUsuario),
+        pagina,
+        limite: porPagina,
+      });
       setUsuarios(res.dados);
+      setTotal(res.total);
+      setTotalPaginas(res.totalPaginas || 1);
     } catch (err) {
       toast.error("Erro ao carregar lista de usuários", {
         description: formatarErroApi(err),
@@ -119,7 +132,7 @@ export function AdminUsuariosView() {
     if (!carregandoAuth && autorizado) {
       carregarUsuarios();
     }
-  }, [carregandoAuth, autorizado]);
+  }, [carregandoAuth, autorizado, pagina, porPagina, filtroStatus, filtroRole]);
 
   const abrirCriacao = () => {
     setUsuarioEditando(null);
@@ -236,8 +249,8 @@ export function AdminUsuariosView() {
       setExcluindo(true);
       await adminApi.excluirUsuario(usuarioParaExcluir.id);
       toast.success(`Usuário '${usuarioParaExcluir.nome}' excluído.`);
-      setUsuarios((prev) => prev.filter((item) => item.id !== usuarioParaExcluir.id));
       setUsuarioParaExcluir(null);
+      carregarUsuarios();
     } catch (err) {
       toast.error("Erro ao excluir usuário", {
         description: formatarErroApi(err),
@@ -247,20 +260,11 @@ export function AdminUsuariosView() {
     }
   };
 
-  const usuariosFiltrados = useMemo(() => {
-    return usuarios.filter((u) => {
-      if (busca) {
-        const termo = busca.toLowerCase();
-        const matchNome = u.nome.toLowerCase().includes(termo);
-        const matchEmail = u.email.toLowerCase().includes(termo);
-        if (!matchNome && !matchEmail) return false;
-      }
-      if (filtroStatus === "ATIVO" && !u.ativo) return false;
-      if (filtroStatus === "INATIVO" && u.ativo) return false;
-      if (filtroRole !== "TODOS" && u.role !== filtroRole) return false;
-      return true;
-    });
-  }, [usuarios, busca, filtroStatus, filtroRole]);
+  const handleBuscar = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPagina(1);
+    carregarUsuarios();
+  };
 
   if (carregandoAuth) {
     return (
@@ -341,7 +345,10 @@ export function AdminUsuariosView() {
         </div>
 
         {/* Barra de Filtros */}
-        <div className="rounded-xl border border-admin-border bg-admin-surface p-4 shadow-sm">
+        <form
+          onSubmit={handleBuscar}
+          className="rounded-xl border border-admin-border bg-admin-surface p-4 shadow-sm space-y-3"
+        >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
             <div className="relative sm:col-span-2">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-muted" />
@@ -350,12 +357,15 @@ export function AdminUsuariosView() {
                 placeholder="Buscar por nome ou e-mail..."
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                className="pl-9"
+                className="pl-9 pr-16"
               />
               {busca && (
                 <button
                   type="button"
-                  onClick={() => setBusca("")}
+                  onClick={() => {
+                    setBusca("");
+                    setPagina(1);
+                  }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-admin-muted hover:text-admin-foreground"
                 >
                   Limpar
@@ -367,7 +377,10 @@ export function AdminUsuariosView() {
               <select
                 aria-label="Filtro de Papel"
                 value={filtroRole}
-                onChange={(e) => setFiltroRole(e.target.value as any)}
+                onChange={(e) => {
+                  setFiltroRole(e.target.value as any);
+                  setPagina(1);
+                }}
                 className="h-10 w-full rounded-md border border-admin-border bg-admin-background px-3 text-sm text-admin-foreground focus:outline-none focus:ring-2 focus:ring-admin-border"
               >
                 <option value="TODOS">Todos os Papéis</option>
@@ -380,7 +393,10 @@ export function AdminUsuariosView() {
               <select
                 aria-label="Filtro de Status"
                 value={filtroStatus}
-                onChange={(e) => setFiltroStatus(e.target.value as any)}
+                onChange={(e) => {
+                  setFiltroStatus(e.target.value as any);
+                  setPagina(1);
+                }}
                 className="h-10 w-full rounded-md border border-admin-border bg-admin-background px-3 text-sm text-admin-foreground focus:outline-none focus:ring-2 focus:ring-admin-border"
               >
                 <option value="TODOS">Todos os Status</option>
@@ -389,7 +405,39 @@ export function AdminUsuariosView() {
               </select>
             </div>
           </div>
-        </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-admin-border/50 text-xs">
+            <span className="text-admin-muted">
+              Total: <strong className="text-admin-foreground">{total}</strong> {total === 1 ? "usuário cadastrado" : "usuários cadastrados"}
+            </span>
+            <div className="flex items-center gap-2">
+              {(busca || filtroRole !== "TODOS" || filtroStatus !== "TODOS") && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setBusca("");
+                    setFiltroRole("TODOS");
+                    setFiltroStatus("TODOS");
+                    setPagina(1);
+                  }}
+                  className="h-8 text-xs text-admin-muted hover:text-admin-foreground"
+                >
+                  Limpar Filtros
+                </Button>
+              )}
+              <Button
+                type="submit"
+                size="sm"
+                className="h-8 gap-1.5 bg-admin-sidebar text-white hover:opacity-90 text-xs"
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span>Pesquisar</span>
+              </Button>
+            </div>
+          </div>
+        </form>
 
         {/* Lista de Usuários (Cards Mobile + Tabela Desktop) */}
         <div className="overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-sm">
@@ -398,7 +446,7 @@ export function AdminUsuariosView() {
               <RefreshCw className="h-6 w-6 animate-spin text-admin-muted" />
               <span className="ml-3 text-sm text-admin-muted">Carregando usuários...</span>
             </div>
-          ) : usuariosFiltrados.length === 0 ? (
+          ) : usuarios.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center p-6 text-center">
               <Users className="h-10 w-10 text-admin-muted/60" />
               <p className="mt-3 text-base font-semibold text-admin-foreground">
@@ -414,7 +462,7 @@ export function AdminUsuariosView() {
             <>
               {/* Cards Mobile (< md) */}
               <div className="grid gap-3 p-4 md:hidden">
-                {usuariosFiltrados.map((u) => {
+                {usuarios.map((u) => {
                   const isMaster = u.role === "MASTER";
                   const isSelf = u.id === usuarioLogado?.id;
                   const isMasterPrincipal = u.email === "admin@alvaraesmoderna.com.br";
@@ -570,7 +618,7 @@ export function AdminUsuariosView() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-admin-border">
-                    {usuariosFiltrados.map((u) => {
+                    {usuarios.map((u) => {
                       const isMaster = u.role === "MASTER";
                       const isSelf = u.id === usuarioLogado?.id;
                       const isMasterPrincipal = u.email === "admin@alvaraesmoderna.com.br";
@@ -712,6 +760,24 @@ export function AdminUsuariosView() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Paginação */}
+              {total > 0 && (
+                <div className="border-t border-admin-border px-4 py-3 bg-admin-background/40">
+                  <AdminPaginacao
+                    paginaAtual={pagina}
+                    totalPaginas={totalPaginas}
+                    totalItens={total}
+                    porPagina={porPagina}
+                    setPagina={setPagina}
+                    setPorPagina={(valor) => {
+                      setPorPagina(valor);
+                      setPagina(1);
+                    }}
+                    selectId="usuarios-admin-por-pagina"
+                  />
+                </div>
+              )}
             </>
           )}
         </div>

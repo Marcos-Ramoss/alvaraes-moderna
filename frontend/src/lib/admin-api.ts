@@ -67,6 +67,14 @@ export type FiltrosAuditoria = {
   limite?: number | undefined;
 };
 
+export type RespostaPaginada<T> = {
+  dados: T[];
+  total: number;
+  pagina: number;
+  limite: number;
+  totalPaginas: number;
+};
+
 export function temPermissao(usuario: UsuarioAdmin | null | undefined, permissao: Permissao): boolean {
   if (!usuario) return false;
   if (usuario.role === "MASTER") return true;
@@ -453,7 +461,15 @@ export const adminApi = {
     return data.dados;
   },
 
-  async listarUsuarios(filtros: { busca?: string; ativo?: boolean; role?: RoleUsuario; pagina?: number; limite?: number } = {}) {
+  async listarUsuarios(
+    filtros: {
+      busca?: string | undefined;
+      ativo?: boolean | undefined;
+      role?: RoleUsuario | undefined;
+      pagina?: number | undefined;
+      limite?: number | undefined;
+    } = {}
+  ) {
     const params = new URLSearchParams();
     if (filtros.busca) params.set("busca", filtros.busca);
     if (filtros.ativo !== undefined) params.set("ativo", String(filtros.ativo));
@@ -462,7 +478,7 @@ export const adminApi = {
     if (filtros.limite) params.set("limite", String(filtros.limite));
 
     const qs = params.toString();
-    return request<{ dados: UsuarioAdmin[]; total: number }>(`/admin/usuarios${qs ? `?${qs}` : ""}`);
+    return request<RespostaPaginada<UsuarioAdmin>>(`/admin/usuarios${qs ? `?${qs}` : ""}`);
   },
 
   async buscarUsuarioPorId(id: string) {
@@ -525,7 +541,29 @@ export const adminApi = {
     if (filtros.limite) params.set("limite", String(filtros.limite));
 
     const qs = params.toString();
-    return request<{ dados: LogAuditoriaAdmin[]; total: number }>(`/admin/auditoria${qs ? `?${qs}` : ""}`);
+    return request<RespostaPaginada<LogAuditoriaAdmin>>(`/admin/auditoria${qs ? `?${qs}` : ""}`);
+  },
+
+  async excluirLogAuditoria(id: string) {
+    return request<{ dados: { sucesso: boolean } }>(`/admin/auditoria/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async contarLogsAuditoriaAntigos(dataLimite: string) {
+    return request<{ dados: { total: number; dataLimite: string } }>(
+      `/admin/auditoria/antigos/contar?dataLimite=${encodeURIComponent(dataLimite)}`
+    );
+  },
+
+  async expurgarLogsAuditoriaAntigos(dataLimite: string) {
+    return request<{ dados: { totalExcluidos: number; dataLimite: string } }>(
+      "/admin/auditoria/antigos",
+      {
+        method: "DELETE",
+        body: { dataLimite },
+      }
+    );
   },
 };
 
