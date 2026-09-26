@@ -12,7 +12,7 @@ function parseDataInicio(data: string): Date {
   return new Date(data);
 }
 
-function parseDataFim(data: string): Date {
+export function parseDataFim(data: string): Date {
   if (/^\d{4}-\d{2}-\d{2}$/.test(data)) {
     return new Date(`${data}T23:59:59.999${FUSO_ALVARAES}`);
   }
@@ -99,7 +99,7 @@ export class AuditoriaRepository {
     return prisma.logAuditoria.count({
       where: {
         criadoEm: {
-          lt: dataLimite,
+          lte: dataLimite,
         },
       },
     });
@@ -109,7 +109,7 @@ export class AuditoriaRepository {
     const resultado = await prisma.logAuditoria.deleteMany({
       where: {
         criadoEm: {
-          lt: dataLimite,
+          lte: dataLimite,
         },
       },
     });

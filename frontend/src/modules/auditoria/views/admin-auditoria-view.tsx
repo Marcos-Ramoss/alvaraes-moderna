@@ -808,7 +808,7 @@ export function AdminAuditoriaView() {
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="data-limite-expurgo" className="text-sm font-semibold">
-                Excluir rastreamentos anteriores a:
+                Excluir rastreamentos até a data (inclusive):
               </Label>
               <Input
                 id="data-limite-expurgo"
@@ -820,7 +820,7 @@ export function AdminAuditoriaView() {
                 }}
               />
               <p className="text-xs text-admin-muted">
-                Exemplo: ao selecionar <strong>01/01/2026</strong>, serão excluídos todos os registros com data anterior a 01/01/2026.
+                Exemplo: ao selecionar <strong>25/09/2026</strong>, serão excluídos todos os registros criados até o fim do dia 25/09/2026.
               </p>
             </div>
 
@@ -850,8 +850,8 @@ export function AdminAuditoriaView() {
                 </p>
                 <p className="text-xs opacity-90">
                   {contagemExpurgo === 0
-                    ? `Não existem registros de rastreamento com data anterior a ${formatarDataPtBr(dataLimiteExpurgo)}.`
-                    : `Estes ${contagemExpurgo} registro(s) anteriores a ${formatarDataPtBr(dataLimiteExpurgo)} serão removidos permanentemente.`}
+                    ? `Não existem registros de rastreamento com data até ${formatarDataPtBr(dataLimiteExpurgo)}.`
+                    : `Estes ${contagemExpurgo} registro(s) realizados até ${formatarDataPtBr(dataLimiteExpurgo)} serão removidos permanentemente.`}
                 </p>
               </div>
             )}
@@ -889,7 +889,7 @@ export function AdminAuditoriaView() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-rose-700">Confirmar exclusão em lote</AlertDialogTitle>
             <AlertDialogDescription>
-              Você está prestes a remover permanentemente <strong>{contagemExpurgo}</strong> registro(s) de rastreamento anteriores a <strong>{dataLimiteExpurgo ? formatarDataPtBr(dataLimiteExpurgo) : ""}</strong>.
+              Você está prestes a remover permanentemente <strong>{contagemExpurgo}</strong> registro(s) de rastreamento realizados até <strong>{dataLimiteExpurgo ? formatarDataPtBr(dataLimiteExpurgo) : ""}</strong>.
               <br /><br />
               Tem certeza que deseja prosseguir com a exclusão?
             </AlertDialogDescription>

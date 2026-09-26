@@ -569,6 +569,27 @@ export const adminApi = {
 
 export function formatarDataPtBr(dataIso?: string) {
   if (!dataIso) return "Sem data";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dataIso)) {
+    const [ano, mes, dia] = dataIso.split("-");
+    const meses = [
+      "janeiro",
+      "fevereiro",
+      "março",
+      "abril",
+      "maio",
+      "junho",
+      "julho",
+      "agosto",
+      "setembro",
+      "outubro",
+      "novembro",
+      "dezembro",
+    ];
+    const indice = Number(mes) - 1;
+    if (indice >= 0 && indice < 12) {
+      return `${dia} de ${meses[indice]} de ${ano}`;
+    }
+  }
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "long",

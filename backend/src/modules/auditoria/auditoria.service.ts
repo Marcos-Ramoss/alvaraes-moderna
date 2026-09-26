@@ -1,17 +1,8 @@
 import type { Request } from "express";
 import { type AcaoAuditoria, Prisma, type RecursoAuditoria } from "@prisma/client";
 import { AppError } from "../../common/errors/app-error.js";
-import { AuditoriaRepository } from "./auditoria.repository.js";
+import { AuditoriaRepository, parseDataFim } from "./auditoria.repository.js";
 import type { ListarAuditoriaQueryDto } from "./dto/listar-auditoria.query.dto.js";
-
-const FUSO_ALVARAES = "-04:00";
-
-function parseDataLimite(data: string): Date {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(data)) {
-    return new Date(`${data}T00:00:00.000${FUSO_ALVARAES}`);
-  }
-  return new Date(data);
-}
 
 export type RegistrarAuditoriaInput = {
   req?: Request | undefined;
@@ -103,7 +94,7 @@ export class AuditoriaService {
   }
 
   async contarAntigos(dataLimiteStr: string) {
-    const dataLimite = parseDataLimite(dataLimiteStr);
+    const dataLimite = parseDataFim(dataLimiteStr);
     if (Number.isNaN(dataLimite.getTime())) {
       throw new AppError("Data limite inválida.", 400);
     }
@@ -112,7 +103,7 @@ export class AuditoriaService {
   }
 
   async excluirAntigos(dataLimiteStr: string, req?: Request) {
-    const dataLimite = parseDataLimite(dataLimiteStr);
+    const dataLimite = parseDataFim(dataLimiteStr);
     if (Number.isNaN(dataLimite.getTime())) {
       throw new AppError("Data limite inválida.", 400);
     }
@@ -123,7 +114,7 @@ export class AuditoriaService {
       req,
       acao: "EXCLUIR",
       recurso: "SISTEMA",
-      descricao: `Excluiu em lote ${totalExcluidos} registro(s) de auditoria anteriores a ${dataLimiteStr}.`,
+      descricao: `Excluiu em lote ${totalExcluidos} registro(s) de auditoria até ${dataLimiteStr}.`,
       dadosNovos: {
         dataLimite: dataLimiteStr,
         totalExcluidos,
