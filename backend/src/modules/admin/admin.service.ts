@@ -1,10 +1,10 @@
-import { AdminRepository } from "./admin.repository.js";
+import { AdminRepository, type ParametrosBuscarResumo } from "./admin.repository.js";
 
 export class AdminService {
   constructor(private readonly adminRepository = new AdminRepository()) {}
 
-  async buscarResumo() {
-    const resumo = await this.adminRepository.buscarResumo();
+  async buscarResumo(params?: ParametrosBuscarResumo) {
+    const resumo = await this.adminRepository.buscarResumo(params);
 
     return {
       ...resumo,
@@ -18,3 +18,4 @@ export class AdminService {
     };
   }
 }
+

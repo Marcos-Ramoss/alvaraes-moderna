@@ -81,6 +81,46 @@ export function temPermissao(usuario: UsuarioAdmin | null | undefined, permissao
   return Array.isArray(usuario.permissoes) && usuario.permissoes.includes(permissao);
 }
 
+export type MetricaCard = {
+  total: number;
+  periodo: number;
+  anterior: number;
+  variacao: number;
+  direcao: "subindo" | "descendo" | "estavel";
+  textoPeriodo: string;
+  textoTendencia: string;
+};
+
+export type PontoEvolucao = {
+  rotulo: string;
+  dataCompleta: string;
+  noticias: number;
+  comercios: number;
+  eventos: number;
+  cursos: number;
+  total: number;
+};
+
+export type ItemDistribuicao = {
+  nome: string;
+  chave: string;
+  total: number;
+  periodo: number;
+  cor: string;
+};
+
+export type AtividadeRecenteAdmin = {
+  id: string;
+  usuarioNome: string;
+  usuarioEmail: string;
+  acao: string;
+  recurso: string;
+  recursoId?: string | null;
+  tituloRecurso?: string | null;
+  descricao: string;
+  criadoEm: string;
+};
+
 export type ResumoAdmin = {
   contagens: {
     noticias: number;
@@ -91,6 +131,23 @@ export type ResumoAdmin = {
     usuarios: number;
     contatos: number;
     anuncios: number;
+  };
+  cards?: {
+    noticias: MetricaCard;
+    comercios: MetricaCard;
+    eventos: MetricaCard;
+    cursos: MetricaCard;
+    anuncios: MetricaCard;
+    contatos: MetricaCard;
+    inscritosBoletim: MetricaCard;
+    usuarios: MetricaCard;
+  };
+  evolucao?: PontoEvolucao[];
+  distribuicao?: ItemDistribuicao[];
+  periodo?: {
+    dataInicio: string;
+    dataFim: string;
+    dias: number;
   };
   demo: {
     noticias: number;
@@ -106,6 +163,7 @@ export type ResumoAdmin = {
     publicado: boolean;
     publicadoEm: string;
   }>;
+  atividadesRecentes?: AtividadeRecenteAdmin[];
   usuario?: UsuarioAdmin;
 };
 
@@ -257,8 +315,12 @@ export const adminApi = {
     return request<{ usuario: UsuarioAdmin }>("/auth/me");
   },
 
-  resumo() {
-    return request<ResumoAdmin>("/admin/resumo");
+  resumo(params?: { dataInicio?: string | undefined; dataFim?: string | undefined }) {
+    const search = new URLSearchParams();
+    if (params?.dataInicio) search.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) search.set("dataFim", params.dataFim);
+    const qs = search.toString();
+    return request<ResumoAdmin>(`/admin/resumo${qs ? `?${qs}` : ""}`);
   },
 
   massaDelete(entidade: string, ids: string[]) {

@@ -14,3 +14,19 @@ export function parseDataFim(data: string): Date {
   }
   return new Date(data);
 }
+
+export function formatarDataIsoAlvaraes(d: Date): string {
+  const deslocamentoMs = 4 * 60 * 60 * 1000;
+  const dataAlvaraes = new Date(d.getTime() - deslocamentoMs);
+  return dataAlvaraes.toISOString().slice(0, 10);
+}
+
+export function obterHojeAlvaraes(): string {
+  return formatarDataIsoAlvaraes(new Date());
+}
+
+export function subtrairDiasAlvaraes(dias: number, dataBase = new Date()): string {
+  const deslocamentoMs = 4 * 60 * 60 * 1000 + dias * 24 * 60 * 60 * 1000;
+  const dataAlvaraes = new Date(dataBase.getTime() - deslocamentoMs);
+  return dataAlvaraes.toISOString().slice(0, 10);
+}
