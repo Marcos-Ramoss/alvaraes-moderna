@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Mail, RefreshCcw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AppPagination } from "@/components/app-pagination";
-import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminShell, AdminLoadingPage } from "@/components/admin/admin-shell";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
 import {
   adminApi,
@@ -60,7 +60,7 @@ function AdminBoletimPage() {
     paginaAtual * itensPorPagina,
   );
 
-  if (carregando) return <div className="min-h-screen bg-[#f4f1e9] p-8">Carregando painel...</div>;
+  if (carregando) return <AdminLoadingPage usuario={usuario} />;
   return (
     <AdminShell usuario={usuario}>
       <div className="flex flex-wrap items-start justify-between gap-4">

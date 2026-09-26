@@ -6,7 +6,7 @@ import {
   AdminStatusSelect,
   type AdminOrdenacaoValor,
 } from "@/components/admin/admin-list-controls";
-import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminShell, AdminLoadingPage } from "@/components/admin/admin-shell";
 import { AdminMassActions } from "@/components/admin/admin-mass-actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
@@ -146,7 +146,7 @@ export function AdminContatosView() {
     }
   }
 
-  if (carregando) return null;
+  if (carregando) return <AdminLoadingPage usuario={usuario} wide />;
 
   return (
     <AdminShell usuario={usuario} wide>

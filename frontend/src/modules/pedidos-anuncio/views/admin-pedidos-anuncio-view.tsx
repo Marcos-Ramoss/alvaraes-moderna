@@ -6,7 +6,7 @@ import {
   AdminStatusSelect,
   type AdminOrdenacaoValor,
 } from "@/components/admin/admin-list-controls";
-import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminShell, AdminLoadingPage } from "@/components/admin/admin-shell";
 import { AdminMassActions } from "@/components/admin/admin-mass-actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
@@ -152,7 +152,7 @@ export function AdminPedidosAnuncioView() {
     }
   }
 
-  if (carregando) return <div className="min-h-screen bg-[#f4f1e9] p-8">Carregando painel...</div>;
+  if (carregando) return <AdminLoadingPage usuario={usuario} wide />;
 
   return (
     <AdminShell usuario={usuario} wide>

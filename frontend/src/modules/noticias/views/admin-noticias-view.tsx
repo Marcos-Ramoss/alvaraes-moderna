@@ -1,6 +1,6 @@
 import { Edit, Eye, ImageIcon, Link2, Plus, RefreshCcw, Search, Send, Trash2, X } from "lucide-react";
 import { FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
-import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminShell, AdminLoadingPage } from "@/components/admin/admin-shell";
 import { AdminPaginacao } from "@/components/admin/admin-list-controls";
 import { AdminMassActions } from "@/components/admin/admin-mass-actions";
 import { ImageUploader } from "@/components/admin/image-uploader";
@@ -140,7 +140,7 @@ export function AdminNoticiasView() {
     }
   };
 
-  if (carregando) return <div className="admin-loading">Carregando painel...</div>;
+  if (carregando) return <AdminLoadingPage usuario={usuario} />;
 
   const indiceEtapaAtual = Math.max(
     etapas.findIndex((etapa) => etapa === etapaAtual),

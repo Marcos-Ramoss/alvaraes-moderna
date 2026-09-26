@@ -19,7 +19,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminShell, AdminLoadingPage } from "@/components/admin/admin-shell";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
 import { AdminPaginacao } from "@/components/admin/admin-list-controls";
 import {
@@ -237,11 +237,7 @@ export function AdminAuditoriaView() {
   };
 
   if (carregandoAuth) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-admin-background">
-        <p className="text-admin-muted">Carregando painel...</p>
-      </div>
-    );
+    return <AdminLoadingPage usuario={usuarioLogado} wide />;
   }
 
   if (!autorizado) {

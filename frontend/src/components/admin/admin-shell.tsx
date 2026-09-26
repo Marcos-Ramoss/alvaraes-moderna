@@ -18,7 +18,9 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
+import { LoadingLogo } from "@/components/loading-logo";
 import { removerTokenAdmin, temPermissao, type Permissao, type UsuarioAdmin } from "../../lib/admin-api";
+import { limparCacheUsuarioAdmin } from "./use-admin-auth";
 
 type AdminShellProps = {
   usuario?: UsuarioAdmin | null;
@@ -64,6 +66,7 @@ export function AdminShell({ usuario, children, wide = false }: AdminShellProps)
   }, [pathname]);
 
   function sair() {
+    limparCacheUsuarioAdmin();
     removerTokenAdmin();
     window.location.href = "/admin/login";
   }
@@ -247,5 +250,35 @@ export function AdminShell({ usuario, children, wide = false }: AdminShellProps)
         </main>
       </div>
     </div>
+  );
+}
+
+export function AdminLoadingContent() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center py-16">
+      <LoadingLogo />
+    </div>
+  );
+}
+
+export function AdminLoadingPage({
+  usuario,
+  wide = false,
+}: {
+  usuario?: UsuarioAdmin | null;
+  wide?: boolean;
+}) {
+  if (!usuario) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-admin-background">
+        <LoadingLogo />
+      </div>
+    );
+  }
+
+  return (
+    <AdminShell usuario={usuario} wide={wide}>
+      <AdminLoadingContent />
+    </AdminShell>
   );
 }
