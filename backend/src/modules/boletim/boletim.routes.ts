@@ -4,6 +4,7 @@ import { asyncHandler } from "../../common/utils/async-handler.js";
 import { BoletimController } from "./boletim.controller.js";
 import { inscritoBoletimIdParamsDto } from "./dto/inscrito-boletim-params.dto.js";
 import { inscreverBoletimRequestDto } from "./dto/inscrever-boletim.request.dto.js";
+import { autorizar } from "../auth/auth.middleware.js";
 
 const boletimController = new BoletimController();
 
@@ -17,10 +18,15 @@ boletimRoutes.post(
   asyncHandler(boletimController.inscrever),
 );
 
-boletimRoutes.get("/admin/boletim/inscritos", asyncHandler(boletimController.listarInscritos));
+boletimRoutes.get(
+  "/admin/boletim/inscritos",
+  autorizar("BOLETIM"),
+  asyncHandler(boletimController.listarInscritos),
+);
 
 boletimRoutes.delete(
   "/admin/boletim/inscritos/:id",
+  autorizar("BOLETIM"),
   validarRequest({ params: inscritoBoletimIdParamsDto }),
   asyncHandler(boletimController.removerInscrito),
 );

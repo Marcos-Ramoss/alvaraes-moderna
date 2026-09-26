@@ -16,6 +16,7 @@ import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
+import { LoadingLogo } from "@/components/loading-logo";
 
 function NotFoundComponent() {
   return (
@@ -172,13 +173,7 @@ function GlobalLoader() {
     <div 
       className={`fixed inset-0 z-[100] flex items-center justify-center bg-background/60 backdrop-blur-sm transition-opacity duration-300 ${isRouterLoading ? "opacity-100" : "opacity-0"}`}
     >
-      <div className="flex size-36 items-center justify-center rounded-full bg-white p-6 shadow-2xl animate-pulse">
-        <img 
-          src="/logo.png" 
-          alt="Carregando..." 
-          className="h-full w-full object-contain" 
-        />
-      </div>
+      <LoadingLogo />
     </div>
   );
 }

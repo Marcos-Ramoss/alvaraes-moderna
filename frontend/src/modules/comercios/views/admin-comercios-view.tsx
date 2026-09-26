@@ -14,7 +14,7 @@ import {
   Archive,
 } from "lucide-react";
 import { FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
-import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminShell, AdminLoadingPage } from "@/components/admin/admin-shell";
 import { AdminPaginacao } from "@/components/admin/admin-list-controls";
 import { AdminMassActions } from "@/components/admin/admin-mass-actions";
 import { ImageUploader } from "@/components/admin/image-uploader";
@@ -140,7 +140,7 @@ export function AdminComerciosView() {
       setSelecionados(new Set());
     }
   }
-  if (carregando) return <div className="admin-loading">Carregando painel...</div>;
+  if (carregando) return <AdminLoadingPage usuario={usuario} />;
   const indiceEtapa = Math.max(etapas.indexOf(etapaAtual), 0);
 
   function atualizarImagem(index: number, campo: keyof FormImagem, valor: string) {

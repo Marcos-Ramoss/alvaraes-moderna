@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminShell, AdminLoadingPage } from "@/components/admin/admin-shell";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
 import { formatarDataPtBr, formatarErroApi } from "@/lib/admin-api";
 import { AdminPaginacao, AdminStatusSelect } from "@/components/admin/admin-list-controls";
@@ -85,7 +85,7 @@ function AdminComentariosPage() {
     }
   };
 
-  if (carregando) return <div className="min-h-screen bg-admin-background p-8 text-admin-foreground">Carregando painel...</div>;
+  if (carregando) return <AdminLoadingPage usuario={usuario} />;
 
   return (
     <AdminShell usuario={usuario}>

@@ -1,13 +1,85 @@
 const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3333/api";
 const TOKEN_KEY = "am_admin_token";
 
+export type RoleUsuario = "MASTER" | "ADMIN";
+
+export type Permissao =
+  | "NOTICIAS"
+  | "COMERCIOS"
+  | "EVENTOS"
+  | "CURSOS"
+  | "COMENTARIOS"
+  | "BOLETIM"
+  | "CONTATOS"
+  | "ANUNCIOS"
+  | "USUARIOS"
+  | "AUDITORIA";
+
 export type UsuarioAdmin = {
   id: string;
   nome: string;
   email: string;
+  role: RoleUsuario;
   ativo: boolean;
   criadoEm: string;
+  alteradoEm?: string;
+  permissoes: Permissao[];
 };
+
+export type AcaoAuditoria = "CRIAR" | "ATUALIZAR" | "EXCLUIR" | "PUBLICAR" | "STATUS" | "LOGIN";
+
+export type RecursoAuditoria =
+  | "NOTICIA"
+  | "COMERCIO"
+  | "EVENTO"
+  | "CURSO"
+  | "COMENTARIO"
+  | "CONTATO"
+  | "PEDIDO_ANUNCIO"
+  | "USUARIO"
+  | "SISTEMA";
+
+export type LogAuditoriaAdmin = {
+  id: string;
+  usuarioId?: string | null;
+  usuarioNome: string;
+  usuarioEmail: string;
+  acao: AcaoAuditoria;
+  recurso: RecursoAuditoria;
+  recursoId?: string | null;
+  tituloRecurso?: string | null;
+  descricao: string;
+  dadosAnteriores?: any;
+  dadosNovos?: any;
+  ip?: string | null;
+  userAgent?: string | null;
+  criadoEm: string;
+};
+
+export type FiltrosAuditoria = {
+  busca?: string | undefined;
+  usuarioId?: string | undefined;
+  acao?: AcaoAuditoria | undefined;
+  recurso?: RecursoAuditoria | undefined;
+  dataInicio?: string | undefined;
+  dataFim?: string | undefined;
+  pagina?: number | undefined;
+  limite?: number | undefined;
+};
+
+export type RespostaPaginada<T> = {
+  dados: T[];
+  total: number;
+  pagina: number;
+  limite: number;
+  totalPaginas: number;
+};
+
+export function temPermissao(usuario: UsuarioAdmin | null | undefined, permissao: Permissao): boolean {
+  if (!usuario) return false;
+  if (usuario.role === "MASTER") return true;
+  return Array.isArray(usuario.permissoes) && usuario.permissoes.includes(permissao);
+}
 
 export type ResumoAdmin = {
   contagens: {
@@ -388,10 +460,136 @@ export const adminApi = {
     }
     return data.dados;
   },
+
+  async listarUsuarios(
+    filtros: {
+      busca?: string | undefined;
+      ativo?: boolean | undefined;
+      role?: RoleUsuario | undefined;
+      pagina?: number | undefined;
+      limite?: number | undefined;
+    } = {}
+  ) {
+    const params = new URLSearchParams();
+    if (filtros.busca) params.set("busca", filtros.busca);
+    if (filtros.ativo !== undefined) params.set("ativo", String(filtros.ativo));
+    if (filtros.role) params.set("role", filtros.role);
+    if (filtros.pagina) params.set("pagina", String(filtros.pagina));
+    if (filtros.limite) params.set("limite", String(filtros.limite));
+
+    const qs = params.toString();
+    return request<RespostaPaginada<UsuarioAdmin>>(`/admin/usuarios${qs ? `?${qs}` : ""}`);
+  },
+
+  async buscarUsuarioPorId(id: string) {
+    return request<{ dados: UsuarioAdmin }>(`/admin/usuarios/${id}`);
+  },
+
+  async criarUsuario(payload: {
+    nome: string;
+    email: string;
+    senha: string;
+    role?: RoleUsuario;
+    ativo?: boolean;
+    permissoes: Permissao[];
+  }) {
+    return request<{ dados: UsuarioAdmin }>("/admin/usuarios", {
+      method: "POST",
+      body: payload,
+    });
+  },
+
+  async atualizarUsuario(
+    id: string,
+    payload: {
+      nome?: string;
+      email?: string;
+      senha?: string;
+      role?: RoleUsuario;
+      ativo?: boolean;
+      permissoes?: Permissao[];
+    }
+  ) {
+    return request<{ dados: UsuarioAdmin }>(`/admin/usuarios/${id}`, {
+      method: "PUT",
+      body: payload,
+    });
+  },
+
+  async alterarStatusUsuario(id: string, ativo: boolean) {
+    return request<{ dados: UsuarioAdmin }>(`/admin/usuarios/${id}/status`, {
+      method: "PATCH",
+      body: { ativo },
+    });
+  },
+
+  async excluirUsuario(id: string) {
+    return request<{ dados: { sucesso: boolean } }>(`/admin/usuarios/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async listarLogsAuditoria(filtros: FiltrosAuditoria = {}) {
+    const params = new URLSearchParams();
+    if (filtros.busca) params.set("busca", filtros.busca);
+    if (filtros.usuarioId) params.set("usuarioId", filtros.usuarioId);
+    if (filtros.acao) params.set("acao", filtros.acao);
+    if (filtros.recurso) params.set("recurso", filtros.recurso);
+    if (filtros.dataInicio) params.set("dataInicio", filtros.dataInicio);
+    if (filtros.dataFim) params.set("dataFim", filtros.dataFim);
+    if (filtros.pagina) params.set("pagina", String(filtros.pagina));
+    if (filtros.limite) params.set("limite", String(filtros.limite));
+
+    const qs = params.toString();
+    return request<RespostaPaginada<LogAuditoriaAdmin>>(`/admin/auditoria${qs ? `?${qs}` : ""}`);
+  },
+
+  async excluirLogAuditoria(id: string) {
+    return request<{ dados: { sucesso: boolean } }>(`/admin/auditoria/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async contarLogsAuditoriaAntigos(dataLimite: string) {
+    return request<{ dados: { total: number; dataLimite: string } }>(
+      `/admin/auditoria/antigos/contar?dataLimite=${encodeURIComponent(dataLimite)}`
+    );
+  },
+
+  async expurgarLogsAuditoriaAntigos(dataLimite: string) {
+    return request<{ dados: { totalExcluidos: number; dataLimite: string } }>(
+      "/admin/auditoria/antigos",
+      {
+        method: "DELETE",
+        body: { dataLimite },
+      }
+    );
+  },
 };
 
 export function formatarDataPtBr(dataIso?: string) {
   if (!dataIso) return "Sem data";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dataIso)) {
+    const [ano, mes, dia] = dataIso.split("-");
+    const meses = [
+      "janeiro",
+      "fevereiro",
+      "março",
+      "abril",
+      "maio",
+      "junho",
+      "julho",
+      "agosto",
+      "setembro",
+      "outubro",
+      "novembro",
+      "dezembro",
+    ];
+    const indice = Number(mes) - 1;
+    if (indice >= 0 && indice < 12) {
+      return `${dia} de ${meses[indice]} de ${ano}`;
+    }
+  }
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "long",

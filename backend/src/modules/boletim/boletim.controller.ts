@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { BoletimService } from "./boletim.service.js";
 import type { InscreverBoletimRequestDto } from "./dto/inscrever-boletim.request.dto.js";
+import { auditoriaService } from "../auditoria/auditoria.service.js";
 
 type InscritoBoletimIdParams = { id: string };
 
@@ -26,6 +27,15 @@ export class BoletimController {
   removerInscrito = async (req: Request, res: Response) => {
     const params = req.dadosValidados?.params as InscritoBoletimIdParams;
     const resultado = await this.boletimService.removerInscrito(params.id);
+
+    await auditoriaService.registrar({
+      req,
+      acao: "EXCLUIR",
+      recurso: "SISTEMA",
+      recursoId: params.id,
+      descricao: `${req.usuarioAutenticado?.nome ?? "Administrador"} removeu um inscrito do boletim informativo (ID: ${params.id}).`,
+    });
+
     return res.json(resultado);
   };
 }

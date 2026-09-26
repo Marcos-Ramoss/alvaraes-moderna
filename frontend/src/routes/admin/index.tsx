@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarDays, GraduationCap, Mail, Newspaper, Plus, Store, Users, MessageSquare, Megaphone } from "lucide-react";
 import { useEffect, useState } from "react";
-import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminShell, AdminLoadingPage } from "@/components/admin/admin-shell";
 import { useAdminAuth } from "@/components/admin/use-admin-auth";
 import { adminApi, formatarDataPtBr, formatarErroApi, type ResumoAdmin } from "@/lib/admin-api";
 
@@ -35,7 +35,7 @@ function AdminDashboardPage() {
       .catch((error) => setErro(formatarErroApi(error)));
   }, []);
 
-  if (carregando) return <TelaCarregando />;
+  if (carregando) return <AdminLoadingPage usuario={usuario} />;
 
   return (
     <AdminShell usuario={usuario}>
@@ -119,8 +119,4 @@ function AdminDashboardPage() {
       </div>
     </AdminShell>
   );
-}
-
-function TelaCarregando() {
-  return <div className="min-h-screen bg-[#f4f1e9] p-8 text-[#092f21]">Carregando painel...</div>;
 }

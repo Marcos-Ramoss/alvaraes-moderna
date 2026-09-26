@@ -16,6 +16,7 @@ import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminAuditoriaRouteImport } from './routes/admin/auditoria'
 import { Route as AdminBoletimRouteImport } from './routes/admin/boletim'
 import { Route as AdminComentariosRouteImport } from './routes/admin/comentarios'
 import { Route as AdminComerciosRouteImport } from './routes/admin/comercios'
@@ -68,6 +69,11 @@ const SobreRoute = SobreRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAuditoriaRoute = AdminAuditoriaRouteImport.update({
+  id: '/admin/auditoria',
+  path: '/admin/auditoria',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminBoletimRoute = AdminBoletimRouteImport.update({
@@ -168,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/contato': typeof ContatoRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sobre': typeof SobreRoute
+  '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/boletim': typeof AdminBoletimRoute
   '/admin/comentarios': typeof AdminComentariosRoute
   '/admin/comercios': typeof AdminComerciosRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByTo {
   '/contato': typeof ContatoRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sobre': typeof SobreRoute
+  '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/boletim': typeof AdminBoletimRoute
   '/admin/comentarios': typeof AdminComentariosRoute
   '/admin/comercios': typeof AdminComerciosRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/contato': typeof ContatoRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sobre': typeof SobreRoute
+  '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/boletim': typeof AdminBoletimRoute
   '/admin/comentarios': typeof AdminComentariosRoute
   '/admin/comercios': typeof AdminComerciosRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/contato'
     | '/privacidade'
     | '/sobre'
+    | '/admin/auditoria'
     | '/admin/boletim'
     | '/admin/comentarios'
     | '/admin/comercios'
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/contato'
     | '/privacidade'
     | '/sobre'
+    | '/admin/auditoria'
     | '/admin/boletim'
     | '/admin/comentarios'
     | '/admin/comercios'
@@ -306,6 +317,7 @@ export interface FileRouteTypes {
     | '/contato'
     | '/privacidade'
     | '/sobre'
+    | '/admin/auditoria'
     | '/admin/boletim'
     | '/admin/comentarios'
     | '/admin/comercios'
@@ -334,6 +346,7 @@ export interface RootRouteChildren {
   ContatoRoute: typeof ContatoRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   SobreRoute: typeof SobreRoute
+  AdminAuditoriaRoute: typeof AdminAuditoriaRoute
   AdminBoletimRoute: typeof AdminBoletimRoute
   AdminComentariosRoute: typeof AdminComentariosRoute
   AdminComerciosRoute: typeof AdminComerciosRoute
@@ -404,6 +417,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/auditoria': {
+      id: '/admin/auditoria'
+      path: '/admin/auditoria'
+      fullPath: '/admin/auditoria'
+      preLoaderRoute: typeof AdminAuditoriaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/boletim': {
@@ -542,6 +562,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContatoRoute: ContatoRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   SobreRoute: SobreRoute,
+  AdminAuditoriaRoute: AdminAuditoriaRoute,
   AdminBoletimRoute: AdminBoletimRoute,
   AdminComentariosRoute: AdminComentariosRoute,
   AdminComerciosRoute: AdminComerciosRoute,

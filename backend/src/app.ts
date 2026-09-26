@@ -19,6 +19,8 @@ import { saudeRoutes } from "./modules/saude/saude.routes.js";
 import { curtidasRoutes } from "./modules/curtidas/curtidas.routes.js";
 import { comentariosRoutes } from "./modules/comentarios/comentarios.routes.js";
 import { midiasRoutes } from "./modules/midias/midias.routes.js";
+import { auditoriaRoutes } from "./modules/auditoria/auditoria.routes.js";
+import { usuariosRoutes } from "./modules/usuarios/usuarios.routes.js";
 
 export const app = express();
 
@@ -54,5 +56,7 @@ app.use("/api", oportunidadesRoutes);
 app.use("/api", curtidasRoutes);
 app.use("/api", comentariosRoutes);
 app.use("/api", midiasRoutes);
+app.use("/api", auditoriaRoutes);
+app.use("/api", usuariosRoutes);
 
 app.use(errorMiddleware);

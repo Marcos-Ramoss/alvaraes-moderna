@@ -6,6 +6,7 @@ import type {
   ListarOportunidadesQueryDto,
 } from "./dto/listar-oportunidades.query.dto.js";
 import { OportunidadesService } from "./oportunidades.service.js";
+import { auditoriaService } from "../auditoria/auditoria.service.js";
 
 type OportunidadeIdParams = { id: string };
 
@@ -38,6 +39,17 @@ export class OportunidadesController {
   criarOportunidade = async (req: Request, res: Response) => {
     const body = req.dadosValidados?.body as CriarOportunidadeRequestDto;
     const oportunidade = await this.oportunidadesService.criarOportunidade(body);
+
+    await auditoriaService.registrar({
+      req,
+      acao: "CRIAR",
+      recurso: "CURSO",
+      recursoId: oportunidade.id,
+      tituloRecurso: oportunidade.titulo,
+      descricao: `${req.usuarioAutenticado?.nome ?? "Administrador"} cadastrou o curso/oportunidade '${oportunidade.titulo}'.`,
+      dadosNovos: { id: oportunidade.id, titulo: oportunidade.titulo, status: oportunidade.status },
+    });
+
     return res.status(201).json({ dados: oportunidade });
   };
 
@@ -45,18 +57,49 @@ export class OportunidadesController {
     const params = req.dadosValidados?.params as OportunidadeIdParams;
     const body = req.dadosValidados?.body as AtualizarOportunidadeRequestDto;
     const oportunidade = await this.oportunidadesService.atualizarOportunidade(params.id, body);
+
+    await auditoriaService.registrar({
+      req,
+      acao: "ATUALIZAR",
+      recurso: "CURSO",
+      recursoId: oportunidade.id,
+      tituloRecurso: oportunidade.titulo,
+      descricao: `${req.usuarioAutenticado?.nome ?? "Administrador"} editou o curso/oportunidade '${oportunidade.titulo}'.`,
+      dadosNovos: { id: oportunidade.id, titulo: oportunidade.titulo, status: oportunidade.status },
+    });
+
     return res.json({ dados: oportunidade });
   };
 
   publicarOportunidade = async (req: Request, res: Response) => {
     const params = req.dadosValidados?.params as OportunidadeIdParams;
     const oportunidade = await this.oportunidadesService.publicarOportunidade(params.id);
+
+    await auditoriaService.registrar({
+      req,
+      acao: "PUBLICAR",
+      recurso: "CURSO",
+      recursoId: oportunidade.id,
+      tituloRecurso: oportunidade.titulo,
+      descricao: `${req.usuarioAutenticado?.nome ?? "Administrador"} publicou o curso/oportunidade '${oportunidade.titulo}'.`,
+      dadosNovos: { status: oportunidade.status },
+    });
+
     return res.json({ dados: oportunidade });
   };
 
   excluirOportunidade = async (req: Request, res: Response) => {
     const params = req.dadosValidados?.params as OportunidadeIdParams;
     const resultado = await this.oportunidadesService.excluirOportunidade(params.id);
+
+    await auditoriaService.registrar({
+      req,
+      acao: "EXCLUIR",
+      recurso: "CURSO",
+      recursoId: params.id,
+      descricao: `${req.usuarioAutenticado?.nome ?? "Administrador"} excluiu o curso/oportunidade (ID: ${params.id}).`,
+    });
+
     return res.json(resultado);
   };
 }

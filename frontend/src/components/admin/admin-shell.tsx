@@ -10,6 +10,7 @@ import {
   Megaphone,
   MessageSquare,
   Newspaper,
+  ShieldCheck,
   Store,
   Users,
 } from "lucide-react";
@@ -17,7 +18,9 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
-import { removerTokenAdmin, type UsuarioAdmin } from "../../lib/admin-api";
+import { LoadingLogo } from "@/components/loading-logo";
+import { removerTokenAdmin, temPermissao, type Permissao, type UsuarioAdmin } from "../../lib/admin-api";
+import { limparCacheUsuarioAdmin } from "./use-admin-auth";
 
 type AdminShellProps = {
   usuario?: UsuarioAdmin | null;
@@ -25,22 +28,35 @@ type AdminShellProps = {
   wide?: boolean;
 };
 
-const menu = [
-  { to: "/admin", label: "Visao geral", icon: LayoutDashboard },
-  { to: "/admin/noticias", label: "Noticias", icon: Newspaper },
-  { to: "/admin/comercios", label: "Comercios", icon: Store },
-  { to: "/admin/eventos", label: "Agenda", icon: CalendarDays },
-  { to: "/admin/cursos", label: "Cursos", icon: GraduationCap },
-  { to: "/admin/comentarios", label: "Comentarios", icon: MessageSquare },
-  { to: "/admin/boletim", label: "Boletim", icon: Mail },
-  { to: "/admin/contatos", label: "Contatos", icon: MessageSquare },
-  { to: "/admin/pedidos-anuncio", label: "Anuncios", icon: Megaphone },
-  { to: "/admin/usuarios", label: "Usuarios", icon: Users },
-] as const;
+type MenuItem = {
+  to: string;
+  label: string;
+  icon: any;
+  permissao?: Permissao;
+};
+
+const menu: MenuItem[] = [
+  { to: "/admin", label: "Visão geral", icon: LayoutDashboard },
+  { to: "/admin/noticias", label: "Notícias", icon: Newspaper, permissao: "NOTICIAS" },
+  { to: "/admin/comercios", label: "Comércios", icon: Store, permissao: "COMERCIOS" },
+  { to: "/admin/eventos", label: "Agenda", icon: CalendarDays, permissao: "EVENTOS" },
+  { to: "/admin/cursos", label: "Cursos", icon: GraduationCap, permissao: "CURSOS" },
+  { to: "/admin/comentarios", label: "Comentários", icon: MessageSquare, permissao: "COMENTARIOS" },
+  { to: "/admin/boletim", label: "Boletim", icon: Mail, permissao: "BOLETIM" },
+  { to: "/admin/contatos", label: "Contatos", icon: MessageSquare, permissao: "CONTATOS" },
+  { to: "/admin/pedidos-anuncio", label: "Anúncios", icon: Megaphone, permissao: "ANUNCIOS" },
+  { to: "/admin/usuarios", label: "Usuários", icon: Users, permissao: "USUARIOS" },
+  { to: "/admin/auditoria", label: "Auditoria", icon: ShieldCheck, permissao: "AUDITORIA" },
+];
 
 export function AdminShell({ usuario, children, wide = false }: AdminShellProps) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { canInstall, promptInstall, isIos, isInstalled, isStandalone } = usePwaInstall();
+
+  const itensVisiveis = menu.filter((item) => {
+    if (!item.permissao) return true;
+    return temPermissao(usuario, item.permissao);
+  });
 
   useEffect(() => {
     const el = document.getElementById("active-mobile-menu-item");
@@ -50,6 +66,7 @@ export function AdminShell({ usuario, children, wide = false }: AdminShellProps)
   }, [pathname]);
 
   function sair() {
+    limparCacheUsuarioAdmin();
     removerTokenAdmin();
     window.location.href = "/admin/login";
   }
@@ -110,8 +127,8 @@ export function AdminShell({ usuario, children, wide = false }: AdminShellProps)
             PAINEL DA REDAÇÃO
           </p>
         </div>
-        <nav className="flex-1 space-y-1 p-3">
-          {menu.map((item) => {
+        <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
+          {itensVisiveis.map((item) => {
             const Icon = item.icon;
             const ativo = pathname === item.to;
             return (
@@ -140,7 +157,18 @@ export function AdminShell({ usuario, children, wide = false }: AdminShellProps)
           </button>
         </div>
         <div className="border-t border-white/10 p-4">
-          <p className="truncate text-sm font-semibold">{usuario?.nome ?? "Administrador"}</p>
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-semibold">{usuario?.nome ?? "Administrador"}</p>
+            {usuario?.role === "MASTER" ? (
+              <span className="rounded bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">
+                MASTER
+              </span>
+            ) : (
+              <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-medium text-white/80">
+                ADMIN
+              </span>
+            )}
+          </div>
           <p className="truncate text-xs text-white/70">{usuario?.email}</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <a
@@ -189,7 +217,7 @@ export function AdminShell({ usuario, children, wide = false }: AdminShellProps)
             </div>
           </div>
           <nav className="mt-3 flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-            {menu.map((item) => (
+            {itensVisiveis.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -222,5 +250,35 @@ export function AdminShell({ usuario, children, wide = false }: AdminShellProps)
         </main>
       </div>
     </div>
+  );
+}
+
+export function AdminLoadingContent() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center py-16">
+      <LoadingLogo />
+    </div>
+  );
+}
+
+export function AdminLoadingPage({
+  usuario,
+  wide = false,
+}: {
+  usuario?: UsuarioAdmin | null;
+  wide?: boolean;
+}) {
+  if (!usuario) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-admin-background">
+        <LoadingLogo />
+      </div>
+    );
+  }
+
+  return (
+    <AdminShell usuario={usuario} wide={wide}>
+      <AdminLoadingContent />
+    </AdminShell>
   );
 }

@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { AdminShell } from "./admin-shell";
+import { AdminShell, AdminLoadingPage } from "./admin-shell";
 import { AdminPaginacao } from "./admin-list-controls";
 import { AdminMassActions } from "./admin-mass-actions";
 import { ImageUploader } from "./image-uploader";
@@ -195,7 +195,7 @@ export function AdminCrudPage<T extends { id: string }, P>({
   const primeiraEtapa = indiceEtapaAtual <= 0;
   const ultimaEtapa = indiceEtapaAtual >= etapas.length - 1;
 
-  if (carregando) return <div className="admin-loading">Carregando painel...</div>;
+  if (carregando) return <AdminLoadingPage usuario={usuario} />;
 
   function atualizarCampo(chave: string, valor: ValorFormulario) {
     setFormulario((atual) => ({ ...atual, [chave]: valor }));
