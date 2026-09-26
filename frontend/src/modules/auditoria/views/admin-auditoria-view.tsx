@@ -126,6 +126,19 @@ export function AdminAuditoriaView() {
     setDataInicio("");
     setDataFim("");
     setPagina(1);
+    setCarregandoLista(true);
+    adminApi
+      .listarLogsAuditoria({ pagina: 1, limite })
+      .then((res) => {
+        setLogs(res.dados);
+        setTotal(res.total);
+      })
+      .catch((err) => {
+        toast.error("Erro ao carregar histórico", { description: formatarErroApi(err) });
+      })
+      .finally(() => {
+        setCarregandoLista(false);
+      });
   };
 
   const totalPaginas = Math.ceil(total / limite) || 1;
