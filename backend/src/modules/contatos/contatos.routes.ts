@@ -5,6 +5,7 @@ import { ContatosController } from "./contatos.controller.js";
 import { atualizarStatusContatoRequestDto } from "./dto/atualizar-status-contato.request.dto.js";
 import { contatoIdParamsDto } from "./dto/contato-params.dto.js";
 import { criarContatoRequestDto } from "./dto/criar-contato.request.dto.js";
+import { autorizar } from "../auth/auth.middleware.js";
 
 const contatosController = new ContatosController();
 
@@ -16,10 +17,15 @@ contatosRoutes.post(
   asyncHandler(contatosController.criarContato),
 );
 
-contatosRoutes.get("/admin/contatos", asyncHandler(contatosController.listarContatos));
+contatosRoutes.get(
+  "/admin/contatos",
+  autorizar("CONTATOS"),
+  asyncHandler(contatosController.listarContatos),
+);
 
 contatosRoutes.patch(
   "/admin/contatos/:id/status",
+  autorizar("CONTATOS"),
   validarRequest({ params: contatoIdParamsDto, body: atualizarStatusContatoRequestDto }),
   asyncHandler(contatosController.atualizarStatus),
 );

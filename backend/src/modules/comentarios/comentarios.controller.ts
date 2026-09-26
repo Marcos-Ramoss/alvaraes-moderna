@@ -5,6 +5,7 @@ import { createComentarioUseCase } from "./use-cases/create-comentario.use-case.
 import { listComentariosPublicUseCase } from "./use-cases/list-comentarios-public.use-case.js";
 import { listComentariosAdminUseCase, updateComentarioStatusUseCase, deleteComentarioUseCase } from "./use-cases/admin-comentarios.use-case.js";
 import type { TipoEntidade, StatusComentario } from "@prisma/client";
+import { auditoriaService } from "../auditoria/auditoria.service.js";
 
 export class ComentariosController {
   // Public
@@ -35,12 +36,31 @@ export class ComentariosController {
     const id = req.params.id as string;
     const { status } = UpdateStatusComentarioSchema.parse(req.body);
     const resultado = await updateComentarioStatusUseCase.execute(id, status);
+
+    await auditoriaService.registrar({
+      req,
+      acao: "STATUS",
+      recurso: "COMENTARIO",
+      recursoId: id,
+      descricao: `${req.usuarioAutenticado?.nome ?? "Administrador"} alterou o status do comentário para '${status}'.`,
+      dadosNovos: { status },
+    });
+
     res.json(resultado);
   }
 
   async remover(req: Request, res: Response) {
     const id = req.params.id as string;
     await deleteComentarioUseCase.execute(id);
+
+    await auditoriaService.registrar({
+      req,
+      acao: "EXCLUIR",
+      recurso: "COMENTARIO",
+      recursoId: id,
+      descricao: `${req.usuarioAutenticado?.nome ?? "Administrador"} excluiu o comentário (ID: ${id}).`,
+    });
+
     res.status(204).send();
   }
 }

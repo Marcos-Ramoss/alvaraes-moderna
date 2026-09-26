@@ -50,6 +50,14 @@ export class AuthService {
     return this.authMapper.paraUsuarioLogado(usuario);
   }
 
+  async buscarUsuarioAtivoParaAutenticacao(id: string) {
+    const usuario = await this.authRepository.buscarUsuarioPorId(id);
+    if (!usuario || !usuario.ativo) {
+      return null;
+    }
+    return usuario;
+  }
+
   verificarToken(token: string) {
     try {
       const payload = jwt.verify(token, env.JWT_SECRET) as TokenPayload;

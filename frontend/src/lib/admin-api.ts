@@ -1,13 +1,77 @@
 const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3333/api";
 const TOKEN_KEY = "am_admin_token";
 
+export type RoleUsuario = "MASTER" | "ADMIN";
+
+export type Permissao =
+  | "NOTICIAS"
+  | "COMERCIOS"
+  | "EVENTOS"
+  | "CURSOS"
+  | "COMENTARIOS"
+  | "BOLETIM"
+  | "CONTATOS"
+  | "ANUNCIOS"
+  | "USUARIOS"
+  | "AUDITORIA";
+
 export type UsuarioAdmin = {
   id: string;
   nome: string;
   email: string;
+  role: RoleUsuario;
   ativo: boolean;
   criadoEm: string;
+  alteradoEm?: string;
+  permissoes: Permissao[];
 };
+
+export type AcaoAuditoria = "CRIAR" | "ATUALIZAR" | "EXCLUIR" | "PUBLICAR" | "STATUS" | "LOGIN";
+
+export type RecursoAuditoria =
+  | "NOTICIA"
+  | "COMERCIO"
+  | "EVENTO"
+  | "CURSO"
+  | "COMENTARIO"
+  | "CONTATO"
+  | "PEDIDO_ANUNCIO"
+  | "USUARIO"
+  | "SISTEMA";
+
+export type LogAuditoriaAdmin = {
+  id: string;
+  usuarioId?: string | null;
+  usuarioNome: string;
+  usuarioEmail: string;
+  acao: AcaoAuditoria;
+  recurso: RecursoAuditoria;
+  recursoId?: string | null;
+  tituloRecurso?: string | null;
+  descricao: string;
+  dadosAnteriores?: any;
+  dadosNovos?: any;
+  ip?: string | null;
+  userAgent?: string | null;
+  criadoEm: string;
+};
+
+export type FiltrosAuditoria = {
+  busca?: string;
+  usuarioId?: string;
+  acao?: AcaoAuditoria;
+  recurso?: RecursoAuditoria;
+  dataInicio?: string;
+  dataFim?: string;
+  pagina?: number;
+  limite?: number;
+};
+
+export function temPermissao(usuario: UsuarioAdmin | null | undefined, permissao: Permissao): boolean {
+  if (!usuario) return false;
+  if (usuario.role === "MASTER") return true;
+  return Array.isArray(usuario.permissoes) && usuario.permissoes.includes(permissao);
+}
 
 export type ResumoAdmin = {
   contagens: {
@@ -387,6 +451,81 @@ export const adminApi = {
       throw new Error(data?.erro ?? data?.message ?? "Falha ao enviar imagem.");
     }
     return data.dados;
+  },
+
+  async listarUsuarios(filtros: { busca?: string; ativo?: boolean; role?: RoleUsuario; pagina?: number; limite?: number } = {}) {
+    const params = new URLSearchParams();
+    if (filtros.busca) params.set("busca", filtros.busca);
+    if (filtros.ativo !== undefined) params.set("ativo", String(filtros.ativo));
+    if (filtros.role) params.set("role", filtros.role);
+    if (filtros.pagina) params.set("pagina", String(filtros.pagina));
+    if (filtros.limite) params.set("limite", String(filtros.limite));
+
+    const qs = params.toString();
+    return request<{ dados: UsuarioAdmin[]; total: number }>(`/admin/usuarios${qs ? `?${qs}` : ""}`);
+  },
+
+  async buscarUsuarioPorId(id: string) {
+    return request<{ dados: UsuarioAdmin }>(`/admin/usuarios/${id}`);
+  },
+
+  async criarUsuario(payload: {
+    nome: string;
+    email: string;
+    senha: string;
+    role?: RoleUsuario;
+    ativo?: boolean;
+    permissoes: Permissao[];
+  }) {
+    return request<{ dados: UsuarioAdmin }>("/admin/usuarios", {
+      method: "POST",
+      body: payload,
+    });
+  },
+
+  async atualizarUsuario(
+    id: string,
+    payload: {
+      nome?: string;
+      email?: string;
+      senha?: string;
+      role?: RoleUsuario;
+      ativo?: boolean;
+      permissoes?: Permissao[];
+    }
+  ) {
+    return request<{ dados: UsuarioAdmin }>(`/admin/usuarios/${id}`, {
+      method: "PUT",
+      body: payload,
+    });
+  },
+
+  async alterarStatusUsuario(id: string, ativo: boolean) {
+    return request<{ dados: UsuarioAdmin }>(`/admin/usuarios/${id}/status`, {
+      method: "PATCH",
+      body: { ativo },
+    });
+  },
+
+  async excluirUsuario(id: string) {
+    return request<{ dados: { sucesso: boolean } }>(`/admin/usuarios/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async listarLogsAuditoria(filtros: FiltrosAuditoria = {}) {
+    const params = new URLSearchParams();
+    if (filtros.busca) params.set("busca", filtros.busca);
+    if (filtros.usuarioId) params.set("usuarioId", filtros.usuarioId);
+    if (filtros.acao) params.set("acao", filtros.acao);
+    if (filtros.recurso) params.set("recurso", filtros.recurso);
+    if (filtros.dataInicio) params.set("dataInicio", filtros.dataInicio);
+    if (filtros.dataFim) params.set("dataFim", filtros.dataFim);
+    if (filtros.pagina) params.set("pagina", String(filtros.pagina));
+    if (filtros.limite) params.set("limite", String(filtros.limite));
+
+    const qs = params.toString();
+    return request<{ dados: LogAuditoriaAdmin[]; total: number }>(`/admin/auditoria${qs ? `?${qs}` : ""}`);
   },
 };
 

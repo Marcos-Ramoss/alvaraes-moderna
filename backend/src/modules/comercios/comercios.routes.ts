@@ -9,6 +9,7 @@ import {
   listarComerciosQueryDto,
 } from "./dto/listar-comercios.query.dto.js";
 import { ComerciosController } from "./comercios.controller.js";
+import { autorizar } from "../auth/auth.middleware.js";
 
 const comerciosController = new ComerciosController();
 
@@ -33,30 +34,35 @@ comerciosRoutes.get(
 
 comerciosRoutes.get(
   "/admin/comercios",
+  autorizar("COMERCIOS"),
   validarRequest({ query: listarComerciosAdminQueryDto }),
   asyncHandler(comerciosController.listarAdministracao),
 );
 
 comerciosRoutes.post(
   "/admin/comercios",
+  autorizar("COMERCIOS"),
   validarRequest({ body: criarComercioRequestDto }),
   asyncHandler(comerciosController.criarComercio),
 );
 
 comerciosRoutes.put(
   "/admin/comercios/:id",
+  autorizar("COMERCIOS"),
   validarRequest({ params: comercioIdParamsDto, body: atualizarComercioRequestDto }),
   asyncHandler(comerciosController.atualizarComercio),
 );
 
 comerciosRoutes.delete(
   "/admin/comercios/:id",
+  autorizar("COMERCIOS"),
   validarRequest({ params: comercioIdParamsDto }),
   asyncHandler(comerciosController.excluirComercio),
 );
 
 comerciosRoutes.patch(
   "/admin/comercios/:id/publicar",
+  autorizar("COMERCIOS"),
   validarRequest({ params: comercioIdParamsDto }),
   asyncHandler(comerciosController.publicarComercio),
 );

@@ -8,11 +8,14 @@ async function main() {
 
   await prisma.usuario.upsert({
     where: { email: "admin@alvaraesmoderna.com.br" },
-    update: {},
+    update: {
+      role: "MASTER" as any,
+    },
     create: {
       nome: "Administrador",
       email: "admin@alvaraesmoderna.com.br",
       senhaHash,
+      role: "MASTER" as any,
     },
   });
 

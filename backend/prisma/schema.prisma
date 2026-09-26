@@ -72,18 +72,96 @@ enum TipoMidia {
   VIDEO
 }
 
-model Usuario {
-  id         String   @id @default(cuid())
-  nome       String   @db.VarChar(120)
-  email      String   @unique @db.VarChar(180)
-  senhaHash  String   @map("senha_hash") @db.VarChar(255)
-  ativo      Boolean  @default(true)
-  criadoEm   DateTime @default(now()) @map("criado_em")
-  alteradoEm DateTime @updatedAt @map("alterado_em")
+enum RoleUsuario {
+  MASTER
+  ADMIN
+}
 
-  noticiasCriadas Noticia[] @relation("NoticiasCriadas")
+enum Permissao {
+  NOTICIAS
+  COMERCIOS
+  EVENTOS
+  CURSOS
+  COMENTARIOS
+  BOLETIM
+  CONTATOS
+  ANUNCIOS
+  USUARIOS
+  AUDITORIA
+}
+
+enum AcaoAuditoria {
+  CRIAR
+  ATUALIZAR
+  EXCLUIR
+  PUBLICAR
+  STATUS
+  LOGIN
+}
+
+enum RecursoAuditoria {
+  NOTICIA
+  COMERCIO
+  EVENTO
+  CURSO
+  COMENTARIO
+  CONTATO
+  PEDIDO_ANUNCIO
+  USUARIO
+  SISTEMA
+}
+
+model Usuario {
+  id              String             @id @default(cuid())
+  nome            String             @db.VarChar(120)
+  email           String             @unique @db.VarChar(180)
+  senhaHash       String             @map("senha_hash") @db.VarChar(255)
+  role            RoleUsuario        @default(ADMIN)
+  ativo           Boolean            @default(true)
+  criadoEm        DateTime           @default(now()) @map("criado_em")
+  alteradoEm      DateTime           @updatedAt @map("alterado_em")
+
+  noticiasCriadas Noticia[]          @relation("NoticiasCriadas")
+  permissoes      UsuarioPermissao[]
+  logsAuditoria   LogAuditoria[]     @relation("LogsUsuario")
 
   @@map("usuarios")
+}
+
+model UsuarioPermissao {
+  usuarioId String    @map("usuario_id")
+  permissao Permissao
+  criadoEm  DateTime  @default(now()) @map("criado_em")
+
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, permissao])
+  @@map("usuario_permissoes")
+}
+
+model LogAuditoria {
+  id              String           @id @default(cuid())
+  usuarioId       String?          @map("usuario_id")
+  usuarioNome     String           @map("usuario_nome") @db.VarChar(120)
+  usuarioEmail    String           @map("usuario_email") @db.VarChar(180)
+  acao            AcaoAuditoria
+  recurso         RecursoAuditoria
+  recursoId       String?          @map("recurso_id") @db.VarChar(180)
+  tituloRecurso   String?          @map("titulo_recurso") @db.VarChar(250)
+  descricao       String           @db.Text
+  dadosAnteriores Json?            @map("dados_anteriores")
+  dadosNovos      Json?            @map("dados_novos")
+  ip              String?          @db.VarChar(60)
+  userAgent       String?          @map("user_agent") @db.VarChar(255)
+  criadoEm        DateTime         @default(now()) @map("criado_em")
+
+  usuario         Usuario?         @relation("LogsUsuario", fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([usuarioId, criadoEm])
+  @@index([recurso, criadoEm])
+  @@index([acao, criadoEm])
+  @@index([criadoEm])
+  @@map("logs_auditoria")
 }
 
 model Categoria {

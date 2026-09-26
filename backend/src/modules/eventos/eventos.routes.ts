@@ -9,6 +9,7 @@ import {
   listarEventosQueryDto,
 } from "./dto/listar-eventos.query.dto.js";
 import { EventosController } from "./eventos.controller.js";
+import { autorizar } from "../auth/auth.middleware.js";
 
 const eventosController = new EventosController();
 
@@ -33,30 +34,35 @@ eventosRoutes.get(
 
 eventosRoutes.get(
   "/admin/eventos",
+  autorizar("EVENTOS"),
   validarRequest({ query: listarEventosAdminQueryDto }),
   asyncHandler(eventosController.listarAdministracao),
 );
 
 eventosRoutes.post(
   "/admin/eventos",
+  autorizar("EVENTOS"),
   validarRequest({ body: criarEventoRequestDto }),
   asyncHandler(eventosController.criarEvento),
 );
 
 eventosRoutes.put(
   "/admin/eventos/:id",
+  autorizar("EVENTOS"),
   validarRequest({ params: eventoIdParamsDto, body: atualizarEventoRequestDto }),
   asyncHandler(eventosController.atualizarEvento),
 );
 
 eventosRoutes.delete(
   "/admin/eventos/:id",
+  autorizar("EVENTOS"),
   validarRequest({ params: eventoIdParamsDto }),
   asyncHandler(eventosController.excluirEvento),
 );
 
 eventosRoutes.patch(
   "/admin/eventos/:id/publicar",
+  autorizar("EVENTOS"),
   validarRequest({ params: eventoIdParamsDto }),
   asyncHandler(eventosController.publicarEvento),
 );

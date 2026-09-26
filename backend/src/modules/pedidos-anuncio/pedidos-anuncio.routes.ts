@@ -5,6 +5,7 @@ import { atualizarStatusPedidoAnuncioRequestDto } from "./dto/atualizar-status-p
 import { criarPedidoAnuncioRequestDto } from "./dto/criar-pedido-anuncio.request.dto.js";
 import { pedidoAnuncioIdParamsDto } from "./dto/pedido-anuncio-params.dto.js";
 import { PedidosAnuncioController } from "./pedidos-anuncio.controller.js";
+import { autorizar } from "../auth/auth.middleware.js";
 
 const pedidosController = new PedidosAnuncioController();
 
@@ -18,11 +19,13 @@ pedidosAnuncioRoutes.post(
 
 pedidosAnuncioRoutes.get(
   "/admin/pedidos-anuncio",
+  autorizar("ANUNCIOS"),
   asyncHandler(pedidosController.listarPedidos),
 );
 
 pedidosAnuncioRoutes.patch(
   "/admin/pedidos-anuncio/:id/status",
+  autorizar("ANUNCIOS"),
   validarRequest({ params: pedidoAnuncioIdParamsDto, body: atualizarStatusPedidoAnuncioRequestDto }),
   asyncHandler(pedidosController.atualizarStatus),
 );
