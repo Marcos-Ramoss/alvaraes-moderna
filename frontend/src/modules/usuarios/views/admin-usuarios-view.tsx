@@ -318,7 +318,7 @@ export function AdminUsuariosView() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <Button
               variant="outline"
               size="sm"
@@ -332,7 +332,7 @@ export function AdminUsuariosView() {
             <Button
               onClick={abrirCriacao}
               size="sm"
-              className="gap-2 bg-admin-sidebar text-white hover:opacity-95"
+              className="flex-1 sm:flex-none gap-2 bg-admin-sidebar text-white hover:opacity-95"
             >
               <UserPlus className="h-4 w-4" />
               <span>Novo Usuário</span>
@@ -342,8 +342,8 @@ export function AdminUsuariosView() {
 
         {/* Barra de Filtros */}
         <div className="rounded-xl border border-admin-border bg-admin-surface p-4 shadow-sm">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-            <div className="relative md:col-span-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
+            <div className="relative sm:col-span-2">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-muted" />
               <Input
                 type="text"
@@ -391,7 +391,7 @@ export function AdminUsuariosView() {
           </div>
         </div>
 
-        {/* Tabela de Usuários */}
+        {/* Lista de Usuários (Cards Mobile + Tabela Desktop) */}
         <div className="overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-sm">
           {carregandoLista ? (
             <div className="flex h-64 items-center justify-center">
@@ -411,161 +411,308 @@ export function AdminUsuariosView() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-admin-border bg-admin-background/60 text-xs font-semibold text-admin-muted uppercase tracking-wider">
-                  <tr>
-                    <th className="px-5 py-3.5">Usuário</th>
-                    <th className="px-5 py-3.5">Papel</th>
-                    <th className="px-5 py-3.5">Permissões de Acesso</th>
-                    <th className="px-5 py-3.5">Status</th>
-                    <th className="px-5 py-3.5">Criado em</th>
-                    <th className="px-5 py-3.5 text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-admin-border">
-                  {usuariosFiltrados.map((u) => {
-                    const isMaster = u.role === "MASTER";
-                    const isSelf = u.id === usuarioLogado?.id;
-                    const isMasterPrincipal = u.email === "admin@alvaraesmoderna.com.br";
+            <>
+              {/* Cards Mobile (< md) */}
+              <div className="grid gap-3 p-4 md:hidden">
+                {usuariosFiltrados.map((u) => {
+                  const isMaster = u.role === "MASTER";
+                  const isSelf = u.id === usuarioLogado?.id;
+                  const isMasterPrincipal = u.email === "admin@alvaraesmoderna.com.br";
 
-                    return (
-                      <tr
-                        key={u.id}
-                        className="transition-colors hover:bg-admin-background/40"
-                      >
-                        {/* Nome & Email */}
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-admin-sidebar/10 font-bold text-admin-sidebar">
-                              {u.nome.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate font-semibold text-admin-foreground">
-                                {u.nome}
-                                {isSelf && (
-                                  <span className="ml-2 text-xs font-normal text-admin-muted">
-                                    (você)
-                                  </span>
-                                )}
-                              </p>
-                              <p className="truncate text-xs text-admin-muted">{u.email}</p>
-                            </div>
+                  return (
+                    <article
+                      key={u.id}
+                      className="admin-mobile-card transition-colors bg-admin-surface/70 space-y-3"
+                    >
+                      {/* Top Row: Avatar, Nome, Papel */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-admin-sidebar/10 font-bold text-admin-sidebar">
+                            {u.nome.charAt(0).toUpperCase()}
                           </div>
-                        </td>
+                          <div className="min-w-0">
+                            <h2 className="font-semibold leading-snug text-admin-foreground truncate">
+                              {u.nome}
+                              {isSelf && (
+                                <span className="ml-1.5 text-xs font-normal text-admin-muted">
+                                  (você)
+                                </span>
+                              )}
+                            </h2>
+                            <p className="truncate text-xs text-admin-muted">{u.email}</p>
+                          </div>
+                        </div>
 
-                        {/* Papel */}
-                        <td className="px-5 py-4 whitespace-nowrap">
+                        <div className="shrink-0">
                           {isMaster ? (
-                            <Badge className="bg-amber-100 text-amber-900 border-amber-300 font-bold">
+                            <Badge className="bg-amber-100 text-amber-900 border-amber-300 font-bold text-xs">
                               <Sparkles className="mr-1 h-3 w-3 text-amber-700" />
                               MASTER
                             </Badge>
                           ) : (
-                            <Badge variant="secondary" className="font-semibold">
+                            <Badge variant="secondary" className="font-semibold text-xs">
                               ADMIN
                             </Badge>
                           )}
-                        </td>
+                        </div>
+                      </div>
 
-                        {/* Permissões */}
-                        <td className="px-5 py-4">
-                          {isMaster ? (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800 border border-amber-200">
-                              <ShieldCheck className="h-3.5 w-3.5 text-amber-600" />
-                              Acesso Total Irrestrito
-                            </span>
-                          ) : u.permissoes && u.permissoes.length > 0 ? (
-                            <div className="flex flex-wrap gap-1 max-w-md">
-                              {u.permissoes.map((p) => (
-                                <span
-                                  key={p}
-                                  className="rounded bg-admin-border/50 px-2 py-0.5 text-[11px] font-medium text-admin-foreground border border-admin-border"
-                                >
-                                  {p}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-admin-muted italic">
-                              Nenhuma permissão atribuída
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Status */}
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => handleAlterarStatus(u)}
-                            disabled={alterandoStatusId === u.id || isMasterPrincipal || (isMaster && isSelf)}
-                            title={
-                              isMasterPrincipal
-                                ? "O Administrador Master principal não pode ser desativado."
-                                : isSelf
-                                ? "Você não pode desativar seu próprio usuário."
-                                : "Clique para alterar o status"
-                            }
-                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${
-                              u.ativo
-                                ? "bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100"
-                                : "bg-rose-50 text-rose-800 border border-rose-300 hover:bg-rose-100"
-                            } ${(alterandoStatusId === u.id || isMasterPrincipal || (isMaster && isSelf)) ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}
-                          >
-                            {alterandoStatusId === u.id ? (
-                              <RefreshCw className="h-3 w-3 animate-spin" />
-                            ) : u.ativo ? (
-                              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                            ) : (
-                              <XCircle className="h-3 w-3 text-rose-600" />
-                            )}
-                            {u.ativo ? "Ativo" : "Inativo"}
-                          </button>
-                        </td>
-
-                        {/* Data */}
-                        <td className="px-5 py-4 whitespace-nowrap text-xs text-admin-muted">
-                          {formatarDataPtBr(u.criadoEm)}
-                        </td>
-
-                        {/* Ações */}
-                        <td className="px-5 py-4 whitespace-nowrap text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => abrirEdicao(u)}
-                              title="Editar usuário e permissões"
-                              className="h-8 w-8 text-admin-muted hover:text-admin-foreground"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setUsuarioParaExcluir(u)}
-                              disabled={isMaster || isSelf}
+                      {/* Informações detalhadas */}
+                      <dl className="mt-2 grid gap-2.5 text-sm">
+                        <div className="flex items-center justify-between">
+                          <dt className="admin-label-muted">Status</dt>
+                          <dd>
+                            <button
+                              type="button"
+                              onClick={() => handleAlterarStatus(u)}
+                              disabled={alterandoStatusId === u.id || isMasterPrincipal || (isMaster && isSelf)}
                               title={
-                                isMaster
-                                  ? "Contas Master não podem ser excluídas."
+                                isMasterPrincipal
+                                  ? "O Administrador Master principal não pode ser desativado."
                                   : isSelf
-                                  ? "Você não pode excluir sua própria conta."
-                                  : "Excluir usuário"
+                                  ? "Você não pode desativar seu próprio usuário."
+                                  : "Clique para alterar o status"
                               }
-                              className={`h-8 w-8 text-admin-muted hover:text-rose-600 ${
-                                isMaster || isSelf ? "opacity-30 cursor-not-allowed" : ""
-                              }`}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${
+                                u.ativo
+                                  ? "bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100"
+                                  : "bg-rose-50 text-rose-800 border border-rose-300 hover:bg-rose-100"
+                              } ${(alterandoStatusId === u.id || isMasterPrincipal || (isMaster && isSelf)) ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                              {alterandoStatusId === u.id ? (
+                                <RefreshCw className="h-3 w-3 animate-spin" />
+                              ) : u.ativo ? (
+                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                              ) : (
+                                <XCircle className="h-3 w-3 text-rose-600" />
+                              )}
+                              {u.ativo ? "Ativo" : "Inativo"}
+                            </button>
+                          </dd>
+                        </div>
+
+                        <div>
+                          <dt className="admin-label-muted mb-1">Permissões de Acesso</dt>
+                          <dd>
+                            {isMaster ? (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800 border border-amber-200">
+                                <ShieldCheck className="h-3.5 w-3.5 text-amber-600" />
+                                Acesso Total Irrestrito
+                              </span>
+                            ) : u.permissoes && u.permissoes.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {u.permissoes.map((p) => (
+                                  <span
+                                    key={p}
+                                    className="rounded bg-admin-border/50 px-2 py-0.5 text-[11px] font-medium text-admin-foreground border border-admin-border"
+                                  >
+                                    {p}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-admin-muted italic">
+                                Nenhuma permissão atribuída
+                              </span>
+                            )}
+                          </dd>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs text-admin-muted">
+                          <dt className="admin-label-muted">Criado em</dt>
+                          <dd className="text-admin-foreground font-medium">
+                            {formatarDataPtBr(u.criadoEm)}
+                          </dd>
+                        </div>
+                      </dl>
+
+                      {/* Botões de Ação */}
+                      <div className="mt-3 flex items-center gap-2 pt-3 border-t border-admin-border">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => abrirEdicao(u)}
+                          className="flex-1 gap-1.5 h-9"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          <span>Editar</span>
+                        </Button>
+                        {!isMaster && !isSelf && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setUsuarioParaExcluir(u)}
+                            className="gap-1.5 h-9 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span>Excluir</span>
+                          </Button>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              {/* Tabela Desktop (>= md) */}
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-admin-border bg-admin-background/60 text-xs font-semibold text-admin-muted uppercase tracking-wider">
+                    <tr>
+                      <th className="px-5 py-3.5">Usuário</th>
+                      <th className="px-5 py-3.5">Papel</th>
+                      <th className="px-5 py-3.5">Permissões de Acesso</th>
+                      <th className="px-5 py-3.5">Status</th>
+                      <th className="px-5 py-3.5">Criado em</th>
+                      <th className="px-5 py-3.5 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-admin-border">
+                    {usuariosFiltrados.map((u) => {
+                      const isMaster = u.role === "MASTER";
+                      const isSelf = u.id === usuarioLogado?.id;
+                      const isMasterPrincipal = u.email === "admin@alvaraesmoderna.com.br";
+
+                      return (
+                        <tr
+                          key={u.id}
+                          className="transition-colors hover:bg-admin-background/40"
+                        >
+                          {/* Nome & Email */}
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-admin-sidebar/10 font-bold text-admin-sidebar">
+                                {u.nome.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate font-semibold text-admin-foreground">
+                                  {u.nome}
+                                  {isSelf && (
+                                    <span className="ml-2 text-xs font-normal text-admin-muted">
+                                      (você)
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="truncate text-xs text-admin-muted">{u.email}</p>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Papel */}
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            {isMaster ? (
+                              <Badge className="bg-amber-100 text-amber-900 border-amber-300 font-bold">
+                                <Sparkles className="mr-1 h-3 w-3 text-amber-700" />
+                                MASTER
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="font-semibold">
+                                ADMIN
+                              </Badge>
+                            )}
+                          </td>
+
+                          {/* Permissões */}
+                          <td className="px-5 py-4">
+                            {isMaster ? (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800 border border-amber-200">
+                                <ShieldCheck className="h-3.5 w-3.5 text-amber-600" />
+                                Acesso Total Irrestrito
+                              </span>
+                            ) : u.permissoes && u.permissoes.length > 0 ? (
+                              <div className="flex flex-wrap gap-1 max-w-md">
+                                {u.permissoes.map((p) => (
+                                  <span
+                                    key={p}
+                                    className="rounded bg-admin-border/50 px-2 py-0.5 text-[11px] font-medium text-admin-foreground border border-admin-border"
+                                  >
+                                    {p}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-admin-muted italic">
+                                Nenhuma permissão atribuída
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => handleAlterarStatus(u)}
+                              disabled={alterandoStatusId === u.id || isMasterPrincipal || (isMaster && isSelf)}
+                              title={
+                                isMasterPrincipal
+                                  ? "O Administrador Master principal não pode ser desativado."
+                                  : isSelf
+                                  ? "Você não pode desativar seu próprio usuário."
+                                  : "Clique para alterar o status"
+                              }
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${
+                                u.ativo
+                                  ? "bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100"
+                                  : "bg-rose-50 text-rose-800 border border-rose-300 hover:bg-rose-100"
+                              } ${(alterandoStatusId === u.id || isMasterPrincipal || (isMaster && isSelf)) ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}
+                            >
+                              {alterandoStatusId === u.id ? (
+                                <RefreshCw className="h-3 w-3 animate-spin" />
+                              ) : u.ativo ? (
+                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                              ) : (
+                                <XCircle className="h-3 w-3 text-rose-600" />
+                              )}
+                              {u.ativo ? "Ativo" : "Inativo"}
+                            </button>
+                          </td>
+
+                          {/* Data */}
+                          <td className="px-5 py-4 whitespace-nowrap text-xs text-admin-muted">
+                            {formatarDataPtBr(u.criadoEm)}
+                          </td>
+
+                          {/* Ações */}
+                          <td className="px-5 py-4 whitespace-nowrap text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => abrirEdicao(u)}
+                                title="Editar usuário e permissões"
+                                className="h-8 w-8 text-admin-muted hover:text-admin-foreground"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setUsuarioParaExcluir(u)}
+                                disabled={isMaster || isSelf}
+                                title={
+                                  isMaster
+                                    ? "Contas Master não podem ser excluídas."
+                                    : isSelf
+                                    ? "Você não pode excluir sua própria conta."
+                                    : "Excluir usuário"
+                                }
+                                className={`h-8 w-8 text-admin-muted hover:text-rose-600 ${
+                                  isMaster || isSelf ? "opacity-30 cursor-not-allowed" : ""
+                                }`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>

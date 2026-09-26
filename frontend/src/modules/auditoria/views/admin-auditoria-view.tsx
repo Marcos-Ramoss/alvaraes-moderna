@@ -195,16 +195,16 @@ export function AdminAuditoriaView() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={carregarLogs}
               disabled={carregandoLista}
-              className="gap-2"
+              className="w-full sm:w-auto gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${carregandoLista ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">Atualizar</span>
+              <span>Atualizar</span>
             </Button>
           </div>
         </div>
@@ -283,35 +283,41 @@ export function AdminAuditoriaView() {
             </div>
           </div>
 
-          {/* Filtro de Datas Opcional */}
-          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-admin-border/50 text-xs text-admin-muted">
-            <span className="flex items-center gap-1 font-semibold">
-              <Calendar className="h-3.5 w-3.5" />
-              Período:
-            </span>
-            <div className="flex items-center gap-1.5">
-              <span>De</span>
-              <input
-                type="date"
-                value={dataInicio}
-                onChange={(e) => setDataInicio(e.target.value)}
-                className="rounded border border-admin-border bg-admin-background px-2 py-1 text-xs text-admin-foreground"
-              />
+          {/* Filtro de Datas Opcional (Mobile-friendly) */}
+          <div className="pt-2 border-t border-admin-border/50 text-xs text-admin-muted space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-1 font-semibold text-admin-foreground">
+                <Calendar className="h-3.5 w-3.5 text-admin-sidebar" />
+                Filtrar por Período
+              </span>
+              <span className="text-[11px] text-admin-muted">
+                ({total} registros encontrados)
+              </span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span>Até</span>
-              <input
-                type="date"
-                value={dataFim}
-                onChange={(e) => setDataFim(e.target.value)}
-                className="rounded border border-admin-border bg-admin-background px-2 py-1 text-xs text-admin-foreground"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <label className="flex items-center gap-2 rounded-md border border-admin-border bg-admin-background px-3 py-1.5">
+                <span className="text-xs text-admin-muted font-medium w-8 shrink-0">De:</span>
+                <input
+                  type="date"
+                  value={dataInicio}
+                  onChange={(e) => setDataInicio(e.target.value)}
+                  className="w-full bg-transparent text-xs text-admin-foreground focus:outline-none"
+                />
+              </label>
+              <label className="flex items-center gap-2 rounded-md border border-admin-border bg-admin-background px-3 py-1.5">
+                <span className="text-xs text-admin-muted font-medium w-8 shrink-0">Até:</span>
+                <input
+                  type="date"
+                  value={dataFim}
+                  onChange={(e) => setDataFim(e.target.value)}
+                  className="w-full bg-transparent text-xs text-admin-foreground focus:outline-none"
+                />
+              </label>
             </div>
-            <span className="text-admin-muted">({total} registros encontrados)</span>
           </div>
         </form>
 
-        {/* Tabela de Registros */}
+        {/* Histórico de Auditoria (Cards Mobile + Tabela Desktop) */}
         <div className="overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-sm">
           {carregandoLista ? (
             <div className="flex h-64 items-center justify-center">
@@ -331,101 +337,175 @@ export function AdminAuditoriaView() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-admin-border bg-admin-background/60 text-xs font-semibold text-admin-muted uppercase tracking-wider">
-                  <tr>
-                    <th className="px-5 py-3.5">Ação</th>
-                    <th className="px-5 py-3.5">Módulo</th>
-                    <th className="px-5 py-3.5">Descrição da Operação</th>
-                    <th className="px-5 py-3.5">Responsável</th>
-                    <th className="px-5 py-3.5">Data e Hora</th>
-                    <th className="px-5 py-3.5 text-right">Detalhes</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-admin-border">
-                  {logs.map((log) => {
-                    const infoAcao = ACOES_LABELS[log.acao] ?? {
-                      label: log.acao,
-                      classe: "bg-slate-50 text-slate-800 border-slate-300",
-                    };
-                    const temDiff = Boolean(log.dadosAnteriores || log.dadosNovos);
+            <>
+              {/* Cards Mobile (< md) */}
+              <div className="grid gap-3 p-4 md:hidden">
+                {logs.map((log) => {
+                  const infoAcao = ACOES_LABELS[log.acao] ?? {
+                    label: log.acao,
+                    classe: "bg-slate-50 text-slate-800 border-slate-300",
+                  };
 
-                    return (
-                      <tr
-                        key={log.id}
-                        className="transition-colors hover:bg-admin-background/40"
-                      >
-                        {/* Ação */}
-                        <td className="px-5 py-3.5 whitespace-nowrap">
+                  return (
+                    <article
+                      key={log.id}
+                      className="admin-mobile-card transition-colors bg-admin-surface/70 space-y-3"
+                    >
+                      {/* Top Row: Ação Badge, Módulo, Data e Hora */}
+                      <div className="flex items-start justify-between gap-2 border-b border-admin-border/50 pb-2.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span
                             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${infoAcao.classe}`}
                           >
                             {infoAcao.label}
                           </span>
-                        </td>
+                          <span className="rounded bg-admin-border/40 px-2 py-0.5 text-xs font-medium text-admin-foreground">
+                            {RECURSOS_LABELS[log.recurso] ?? log.recurso}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-admin-muted shrink-0 text-right">
+                          {formatarDataPtBr(log.criadoEm)} <span className="font-mono">{formatarHora(log.criadoEm)}</span>
+                        </span>
+                      </div>
 
-                        {/* Módulo */}
-                        <td className="px-5 py-3.5 whitespace-nowrap text-xs font-medium text-admin-foreground">
-                          {RECURSOS_LABELS[log.recurso] ?? log.recurso}
-                        </td>
-
-                        {/* Descrição */}
-                        <td className="px-5 py-3.5 min-w-[280px]">
-                          <p className="font-medium text-admin-foreground leading-snug">
-                            {log.descricao}
+                      {/* Descrição e Recurso */}
+                      <div>
+                        <p className="font-semibold text-admin-foreground text-sm leading-snug">
+                          {log.descricao}
+                        </p>
+                        {log.tituloRecurso && (
+                          <p className="text-xs text-admin-muted mt-1">
+                            Recurso: <span className="font-semibold text-admin-foreground/90">{log.tituloRecurso}</span>
                           </p>
-                          {log.tituloRecurso && (
-                            <p className="text-xs text-admin-muted mt-0.5">
-                              Recurso: <span className="font-semibold text-admin-foreground/80">{log.tituloRecurso}</span>
-                            </p>
-                          )}
-                        </td>
+                        )}
+                      </div>
 
-                        {/* Responsável */}
-                        <td className="px-5 py-3.5 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-admin-sidebar/10 text-xs font-bold text-admin-sidebar">
-                              {log.usuarioNome.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate text-xs font-semibold text-admin-foreground">
-                                {log.usuarioNome}
-                              </p>
-                              <p className="truncate text-[11px] text-admin-muted">
-                                {log.usuarioEmail}
-                              </p>
-                            </div>
+                      {/* Responsável */}
+                      <dl className="mt-2 text-xs">
+                        <dt className="admin-label-muted">Responsável</dt>
+                        <dd className="mt-1 flex items-center gap-2">
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-admin-sidebar/10 text-xs font-bold text-admin-sidebar">
+                            {log.usuarioNome.charAt(0).toUpperCase()}
                           </div>
-                        </td>
+                          <span className="font-semibold text-admin-foreground">{log.usuarioNome}</span>
+                          <span className="text-admin-muted text-[11px] truncate">({log.usuarioEmail})</span>
+                        </dd>
+                      </dl>
 
-                        {/* Data e Hora */}
-                        <td className="px-5 py-3.5 whitespace-nowrap text-xs text-admin-muted">
-                          <p className="font-medium text-admin-foreground">
-                            {formatarDataPtBr(log.criadoEm)}
-                          </p>
-                          <p className="text-[11px] text-admin-muted">{formatarHora(log.criadoEm)}</p>
-                        </td>
+                      {/* Botão Ver Detalhes / Inspecionar Diff */}
+                      <div className="pt-2.5 border-t border-admin-border/50">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setLogSelecionado(log)}
+                          className="w-full gap-2 h-9 text-xs text-admin-sidebar hover:bg-admin-sidebar/10 font-semibold"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span>Ver Detalhes do Log & Diffs</span>
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
 
-                        {/* Botão Ver Detalhes */}
-                        <td className="px-5 py-3.5 whitespace-nowrap text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setLogSelecionado(log)}
-                            className="h-8 gap-1.5 text-xs text-admin-sidebar hover:bg-admin-sidebar/10"
-                            title="Inspecionar dados e diff"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                            <span>Ver</span>
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+              {/* Tabela Desktop (>= md) */}
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-admin-border bg-admin-background/60 text-xs font-semibold text-admin-muted uppercase tracking-wider">
+                    <tr>
+                      <th className="px-5 py-3.5">Ação</th>
+                      <th className="px-5 py-3.5">Módulo</th>
+                      <th className="px-5 py-3.5">Descrição da Operação</th>
+                      <th className="px-5 py-3.5">Responsável</th>
+                      <th className="px-5 py-3.5">Data e Hora</th>
+                      <th className="px-5 py-3.5 text-right">Detalhes</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-admin-border">
+                    {logs.map((log) => {
+                      const infoAcao = ACOES_LABELS[log.acao] ?? {
+                        label: log.acao,
+                        classe: "bg-slate-50 text-slate-800 border-slate-300",
+                      };
+
+                      return (
+                        <tr
+                          key={log.id}
+                          className="transition-colors hover:bg-admin-background/40"
+                        >
+                          {/* Ação */}
+                          <td className="px-5 py-3.5 whitespace-nowrap">
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${infoAcao.classe}`}
+                            >
+                              {infoAcao.label}
+                            </span>
+                          </td>
+
+                          {/* Módulo */}
+                          <td className="px-5 py-3.5 whitespace-nowrap text-xs font-medium text-admin-foreground">
+                            {RECURSOS_LABELS[log.recurso] ?? log.recurso}
+                          </td>
+
+                          {/* Descrição */}
+                          <td className="px-5 py-3.5 min-w-[280px]">
+                            <p className="font-medium text-admin-foreground leading-snug">
+                              {log.descricao}
+                            </p>
+                            {log.tituloRecurso && (
+                              <p className="text-xs text-admin-muted mt-0.5">
+                                Recurso: <span className="font-semibold text-admin-foreground/80">{log.tituloRecurso}</span>
+                              </p>
+                            )}
+                          </td>
+
+                          {/* Responsável */}
+                          <td className="px-5 py-3.5 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-admin-sidebar/10 text-xs font-bold text-admin-sidebar">
+                                {log.usuarioNome.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-xs font-semibold text-admin-foreground">
+                                  {log.usuarioNome}
+                                </p>
+                                <p className="truncate text-[11px] text-admin-muted">
+                                  {log.usuarioEmail}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Data e Hora */}
+                          <td className="px-5 py-3.5 whitespace-nowrap text-xs text-admin-muted">
+                            <p className="font-medium text-admin-foreground">
+                              {formatarDataPtBr(log.criadoEm)}
+                            </p>
+                            <p className="text-[11px] text-admin-muted">{formatarHora(log.criadoEm)}</p>
+                          </td>
+
+                          {/* Botão Ver Detalhes */}
+                          <td className="px-5 py-3.5 whitespace-nowrap text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setLogSelecionado(log)}
+                              className="h-8 gap-1.5 text-xs text-admin-sidebar hover:bg-admin-sidebar/10"
+                              title="Inspecionar dados e diff"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              <span>Ver</span>
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {/* Paginação */}

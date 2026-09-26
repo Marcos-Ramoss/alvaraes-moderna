@@ -57,14 +57,14 @@ export type LogAuditoriaAdmin = {
 };
 
 export type FiltrosAuditoria = {
-  busca?: string;
-  usuarioId?: string;
-  acao?: AcaoAuditoria;
-  recurso?: RecursoAuditoria;
-  dataInicio?: string;
-  dataFim?: string;
-  pagina?: number;
-  limite?: number;
+  busca?: string | undefined;
+  usuarioId?: string | undefined;
+  acao?: AcaoAuditoria | undefined;
+  recurso?: RecursoAuditoria | undefined;
+  dataInicio?: string | undefined;
+  dataFim?: string | undefined;
+  pagina?: number | undefined;
+  limite?: number | undefined;
 };
 
 export function temPermissao(usuario: UsuarioAdmin | null | undefined, permissao: Permissao): boolean {
