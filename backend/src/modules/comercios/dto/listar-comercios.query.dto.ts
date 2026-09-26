@@ -12,6 +12,8 @@ export const listarComerciosQueryDto = z.object({
 
 export const listarComerciosAdminQueryDto = listarComerciosQueryDto.extend({
   status: z.enum(["RASCUNHO", "PUBLICADO", "ARQUIVADO"]).optional(),
+  dataInicio: z.string().trim().optional(),
+  dataFim: z.string().trim().optional(),
 });
 
 export type ListarComerciosQueryDto = z.infer<typeof listarComerciosQueryDto>;

@@ -11,6 +11,8 @@ export const listarNoticiasQueryDto = z.object({
 
 export const listarNoticiasAdminQueryDto = listarNoticiasQueryDto.extend({
   status: z.enum(["RASCUNHO", "PUBLICADO", "ARQUIVADO"]).optional(),
+  dataInicio: z.string().trim().optional(),
+  dataFim: z.string().trim().optional(),
 });
 
 export type ListarNoticiasQueryDto = z.infer<typeof listarNoticiasQueryDto>;

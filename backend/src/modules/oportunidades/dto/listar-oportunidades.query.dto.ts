@@ -13,6 +13,8 @@ export const listarOportunidadesQueryDto = z.object({
 
 export const listarOportunidadesAdminQueryDto = listarOportunidadesQueryDto.extend({
   status: z.enum(["RASCUNHO", "PUBLICADO", "ARQUIVADO"]).optional(),
+  dataInicio: z.string().trim().optional(),
+  dataFim: z.string().trim().optional(),
 });
 
 export type ListarOportunidadesQueryDto = z.infer<typeof listarOportunidadesQueryDto>;

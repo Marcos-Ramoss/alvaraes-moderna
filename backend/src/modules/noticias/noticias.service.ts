@@ -61,6 +61,8 @@ export class NoticiasService {
       ...(filtros.categoria ? { categoria: filtros.categoria } : {}),
       ...(filtros.destaque !== undefined ? { destaque: filtros.destaque } : {}),
       ...(filtros.status ? { status: filtros.status as StatusPublicacao } : {}),
+      ...(filtros.dataInicio ? { dataInicio: filtros.dataInicio } : {}),
+      ...(filtros.dataFim ? { dataFim: filtros.dataFim } : {}),
     });
     return {
       itens: itens.map((noticia) => this.noticiasMapper.paraDetalhe(noticia)),

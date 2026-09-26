@@ -275,8 +275,28 @@ export const adminApi = {
     });
   },
 
-  async listarNoticias() {
-    const resposta = await request<{ dados: NoticiaAdmin[] }>("/admin/noticias?limite=1000");
+  async listarNoticias(params?: {
+    busca?: string | undefined;
+    categoria?: string | undefined;
+    status?: string | undefined;
+    destaque?: boolean | undefined;
+    dataInicio?: string | undefined;
+    dataFim?: string | undefined;
+    pagina?: number | undefined;
+    limite?: number | undefined;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.set("limite", String(params?.limite ?? 1000));
+    if (params?.pagina) searchParams.set("pagina", String(params.pagina));
+    if (params?.busca) searchParams.set("busca", params.busca);
+    if (params?.categoria) searchParams.set("categoria", params.categoria);
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.destaque !== undefined) searchParams.set("destaque", String(params.destaque));
+    if (params?.dataInicio) searchParams.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) searchParams.set("dataFim", params.dataFim);
+
+    const query = searchParams.toString();
+    const resposta = await request<{ dados: NoticiaAdmin[] }>(`/admin/noticias${query ? `?${query}` : ""}`);
     return resposta.dados;
   },
 
@@ -306,8 +326,30 @@ export const adminApi = {
     });
   },
 
-  async listarComercios() {
-    const resposta = await request<{ dados: ComercioAdmin[] }>("/admin/comercios?limite=1000");
+  async listarComercios(params?: {
+    busca?: string | undefined;
+    categoria?: string | undefined;
+    status?: string | undefined;
+    patrocinado?: boolean | undefined;
+    possuiPagina?: boolean | undefined;
+    dataInicio?: string | undefined;
+    dataFim?: string | undefined;
+    pagina?: number | undefined;
+    limite?: number | undefined;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.set("limite", String(params?.limite ?? 1000));
+    if (params?.pagina) searchParams.set("pagina", String(params.pagina));
+    if (params?.busca) searchParams.set("busca", params.busca);
+    if (params?.categoria) searchParams.set("categoria", params.categoria);
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.patrocinado !== undefined) searchParams.set("patrocinado", String(params.patrocinado));
+    if (params?.possuiPagina !== undefined) searchParams.set("possuiPagina", String(params.possuiPagina));
+    if (params?.dataInicio) searchParams.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) searchParams.set("dataFim", params.dataFim);
+
+    const query = searchParams.toString();
+    const resposta = await request<{ dados: ComercioAdmin[] }>(`/admin/comercios${query ? `?${query}` : ""}`);
     return resposta.dados;
   },
 
@@ -337,8 +379,28 @@ export const adminApi = {
     });
   },
 
-  async listarEventos() {
-    const resposta = await request<{ dados: EventoAdmin[] }>("/admin/eventos?limite=1000");
+  async listarEventos(params?: {
+    busca?: string | undefined;
+    categoria?: string | undefined;
+    situacao?: string | undefined;
+    status?: string | undefined;
+    dataInicio?: string | undefined;
+    dataFim?: string | undefined;
+    pagina?: number | undefined;
+    limite?: number | undefined;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.set("limite", String(params?.limite ?? 1000));
+    if (params?.pagina) searchParams.set("pagina", String(params.pagina));
+    if (params?.busca) searchParams.set("busca", params.busca);
+    if (params?.categoria) searchParams.set("categoria", params.categoria);
+    if (params?.situacao) searchParams.set("situacao", params.situacao);
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.dataInicio) searchParams.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) searchParams.set("dataFim", params.dataFim);
+
+    const query = searchParams.toString();
+    const resposta = await request<{ dados: EventoAdmin[] }>(`/admin/eventos${query ? `?${query}` : ""}`);
     return resposta.dados;
   },
 
@@ -368,8 +430,28 @@ export const adminApi = {
     });
   },
 
-  async listarCursos() {
-    const resposta = await request<{ dados: CursoAdmin[] }>("/admin/cursos?limite=1000");
+  async listarCursos(params?: {
+    busca?: string | undefined;
+    modalidade?: string | undefined;
+    situacao?: string | undefined;
+    status?: string | undefined;
+    dataInicio?: string | undefined;
+    dataFim?: string | undefined;
+    pagina?: number | undefined;
+    limite?: number | undefined;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.set("limite", String(params?.limite ?? 1000));
+    if (params?.pagina) searchParams.set("pagina", String(params.pagina));
+    if (params?.busca) searchParams.set("busca", params.busca);
+    if (params?.modalidade) searchParams.set("modalidade", params.modalidade);
+    if (params?.situacao) searchParams.set("situacao", params.situacao);
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.dataInicio) searchParams.set("dataInicio", params.dataInicio);
+    if (params?.dataFim) searchParams.set("dataFim", params.dataFim);
+
+    const query = searchParams.toString();
+    const resposta = await request<{ dados: CursoAdmin[] }>(`/admin/cursos${query ? `?${query}` : ""}`);
     return resposta.dados;
   },
 

@@ -1,6 +1,7 @@
 import type { Midia, Prisma, StatusPublicacao } from "@prisma/client";
 import { TipoCategoria, TipoVinculoMidia } from "@prisma/client";
 import { prisma } from "../../database/prisma.js";
+import { parseDataInicio, parseDataFim } from "../../common/utils/data-fuso.js";
 
 type SituacaoEvento = "FUTURO" | "ENCERRADO" | "TODOS";
 
@@ -14,6 +15,8 @@ type ListarPublicosFiltros = {
 
 type ListarAdminFiltros = ListarPublicosFiltros & {
   status?: StatusPublicacao | undefined;
+  dataInicio?: string | undefined;
+  dataFim?: string | undefined;
 };
 
 type EventoComCategoria = Prisma.EventoGetPayload<{
@@ -186,10 +189,23 @@ export class EventosRepository {
   }
 
   private montarWhere(filtros: ListarAdminFiltros, inicioHoje: Date): Prisma.EventoWhereInput {
+    const filtroData: Prisma.DateTimeFilter = {};
+    if (filtros.situacao === "FUTURO") {
+      filtroData.gte = inicioHoje;
+    } else if (filtros.situacao === "ENCERRADO") {
+      filtroData.lt = inicioHoje;
+    }
+
+    if (filtros.dataInicio) {
+      filtroData.gte = parseDataInicio(filtros.dataInicio);
+    }
+    if (filtros.dataFim) {
+      filtroData.lte = parseDataFim(filtros.dataFim);
+    }
+
     return {
       ...(filtros.status ? { status: filtros.status } : {}),
-      ...(filtros.situacao === "FUTURO" ? { data: { gte: inicioHoje } } : {}),
-      ...(filtros.situacao === "ENCERRADO" ? { data: { lt: inicioHoje } } : {}),
+      ...(Object.keys(filtroData).length > 0 ? { data: filtroData } : {}),
       ...(filtros.categoria
         ? {
             categoria: {

@@ -1,6 +1,7 @@
 import type { Prisma, StatusPublicacao } from "@prisma/client";
 import { TipoCategoria, TipoVinculoMidia, type Midia } from "@prisma/client";
 import { prisma } from "../../database/prisma.js";
+import { parseDataInicio, parseDataFim } from "../../common/utils/data-fuso.js";
 
 type ListarPublicosFiltros = {
   busca?: string | undefined;
@@ -14,6 +15,8 @@ type ListarPublicosFiltros = {
 
 type ListarAdminFiltros = ListarPublicosFiltros & {
   status?: StatusPublicacao | undefined;
+  dataInicio?: string | undefined;
+  dataFim?: string | undefined;
 };
 
 type ComercioComCategoria = Prisma.ComercioGetPayload<{
@@ -177,10 +180,19 @@ export class ComerciosRepository {
   }
 
   private montarWhere(filtros: ListarAdminFiltros): Prisma.ComercioWhereInput {
+    const filtroCriadoEm: Prisma.DateTimeFilter = {};
+    if (filtros.dataInicio) {
+      filtroCriadoEm.gte = parseDataInicio(filtros.dataInicio);
+    }
+    if (filtros.dataFim) {
+      filtroCriadoEm.lte = parseDataFim(filtros.dataFim);
+    }
+
     return {
       ...(filtros.status ? { status: filtros.status } : {}),
       ...(filtros.patrocinado !== undefined ? { patrocinado: filtros.patrocinado } : {}),
       ...(filtros.possuiPagina !== undefined ? { possuiPagina: filtros.possuiPagina } : {}),
+      ...(filtros.dataInicio || filtros.dataFim ? { criadoEm: filtroCriadoEm } : {}),
       ...(filtros.categoria
         ? {
             categoria: {
